@@ -1,4 +1,1 @@
-Semantic
-========
-
-Semantic Technologies
+Enterprise Knowledge Graph
