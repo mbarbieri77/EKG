@@ -1,0 +1,14 @@
+SELECT (COUNT(?s) as ?numTriples)
+WHERE {
+    ?s ?p ?o .
+}
+
+
+select *
+{ 
+	?s a :product.
+    ?s :unitPrice ?o
+    FILTER (?s=:product-1)
+}
+
+

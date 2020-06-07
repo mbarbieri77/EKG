@@ -1,0 +1,263 @@
+PREFIX : <http://api.stardog.com/>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX stardog: <tag:stardog:api:>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Region]
+}
+TO {
+  ?subject <http://api.stardog.com/RegionDescription> ?RegionDescription .
+  ?subject <http://api.stardog.com/RegionID> ?RegionID_integer .
+  ?subject rdf:type :Region
+} WHERE {
+  BIND(StrDt(?RegionID, xsd:integer) AS ?RegionID_integer)
+  BIND(template("http://api.stardog.com/regionID-{RegionID}") AS ?subject)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Product]
+}
+TO {
+  ?subject <http://api.stardog.com/CategoryID> ?CategoryID_integer .
+  ?subject <http://api.stardog.com/Discontinued> ?Discontinued_boolean .
+  ?subject <http://api.stardog.com/ProductID> ?ProductID_integer .
+  ?subject <http://api.stardog.com/ProductName> ?ProductName .
+  ?subject <http://api.stardog.com/QuantityPerUnit> ?QuantityPerUnit .
+  ?subject <http://api.stardog.com/ReorderLevel> ?ReorderLevel_integer .
+  ?subject <http://api.stardog.com/SupplierID> ?SupplierID_integer .
+  ?subject <http://api.stardog.com/UnitPrice> ?UnitPrice_double .
+  ?subject <http://api.stardog.com/UnitsInStock> ?UnitsInStock_integer .
+  ?subject <http://api.stardog.com/UnitsOnOrder> ?UnitsOnOrder_integer .
+  ?subject <http://api.stardog.com/ref-CategoryID> ?ref_CategoryID .
+  ?subject <http://api.stardog.com/ref-SupplierID> ?ref_SupplierID .
+  ?subject rdf:type :Product
+} WHERE {
+  BIND(StrDt(?CategoryID, xsd:integer) AS ?CategoryID_integer)
+  BIND(StrDt(?Discontinued, xsd:boolean) AS ?Discontinued_boolean)
+  BIND(StrDt(?ProductID, xsd:integer) AS ?ProductID_integer)
+  BIND(StrDt(?ReorderLevel, xsd:integer) AS ?ReorderLevel_integer)
+  BIND(StrDt(?SupplierID, xsd:integer) AS ?SupplierID_integer)
+  BIND(StrDt(?UnitPrice, xsd:double) AS ?UnitPrice_double)
+  BIND(StrDt(?UnitsInStock, xsd:integer) AS ?UnitsInStock_integer)
+  BIND(StrDt(?UnitsOnOrder, xsd:integer) AS ?UnitsOnOrder_integer)
+  BIND(template("http://api.stardog.com/CategoryID-{CategoryID}") AS ?ref_CategoryID)
+  BIND(template("http://api.stardog.com/ProductID-{ProductID}") AS ?subject)
+  BIND(template("http://api.stardog.com/SupplierID-{SupplierID}") AS ?ref_SupplierID)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[OrderDetail]
+}
+TO {
+  ?subject <http://api.stardog.com/Discount> ?Discount_double .
+  ?subject <http://api.stardog.com/OrderID> ?OrderID_integer .
+  ?subject <http://api.stardog.com/ProductID> ?ProductID_integer .
+  ?subject <http://api.stardog.com/Quantity> ?Quantity_integer .
+  ?subject <http://api.stardog.com/UnitPrice> ?UnitPrice_double .
+  ?subject <http://api.stardog.com/ref-OrderID> ?ref_OrderID .
+  ?subject <http://api.stardog.com/ref-ProductID> ?ref_ProductID .
+  ?subject rdf:type :OrderDetail
+} WHERE {
+  BIND(StrDt(?Discount, xsd:double) AS ?Discount_double)
+  BIND(StrDt(?OrderID, xsd:integer) AS ?OrderID_integer)
+  BIND(StrDt(?ProductID, xsd:integer) AS ?ProductID_integer)
+  BIND(StrDt(?Quantity, xsd:integer) AS ?Quantity_integer)
+  BIND(StrDt(?UnitPrice, xsd:double) AS ?UnitPrice_double)
+  BIND(template("http://api.stardog.com/OrderID-{OrderID}") AS ?ref_OrderID)
+  BIND(template("http://api.stardog.com/OrderDetail-{OrderID}-{ProductID}") AS ?subject)
+  BIND(template("http://api.stardog.com/ProductID-{ProductID}") AS ?ref_ProductID)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Shipper]
+}
+TO {
+  ?subject <http://api.stardog.com/CompanyName> ?CompanyName .
+  ?subject <http://api.stardog.com/Phone> ?Phone .
+  ?subject <http://api.stardog.com/ShipperID> ?ShipperID_integer .
+  ?subject rdf:type :Shipper
+} WHERE {
+  BIND(StrDt(?ShipperID, xsd:integer) AS ?ShipperID_integer)
+  BIND(template("http://api.stardog.com/ShipperID-{ShipperID}") AS ?subject)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Order]
+}
+TO {
+  ?subject <http://api.stardog.com/CustomerID> ?CustomerID .
+  ?subject <http://api.stardog.com/EmployeeID> ?EmployeeID_integer .
+  ?subject <http://api.stardog.com/Freight> ?Freight_double .
+  ?subject <http://api.stardog.com/OrderDate> ?OrderDate_dateTime .
+  ?subject <http://api.stardog.com/OrderID> ?OrderID_integer .
+  ?subject <http://api.stardog.com/RequiredDate> ?RequiredDate_dateTime .
+  ?subject <http://api.stardog.com/ShipAddress> ?ShipAddress .
+  ?subject <http://api.stardog.com/ShipCity> ?ShipCity .
+  ?subject <http://api.stardog.com/ShipCountry> ?ShipCountry .
+  ?subject <http://api.stardog.com/ShipName> ?ShipName .
+  ?subject <http://api.stardog.com/ShipPostalCode> ?ShipPostalCode .
+  ?subject <http://api.stardog.com/ShipRegion> ?ShipRegion .
+  ?subject <http://api.stardog.com/ShipVia> ?ShipVia_integer .
+  ?subject <http://api.stardog.com/ShippedDate> ?ShippedDate_dateTime .
+  ?subject <http://api.stardog.com/ref-CustomerID> ?ref_CustomerID .
+  ?subject <http://api.stardog.com/ref-EmployeeID> ?ref_EmployeeID .
+  ?subject <http://api.stardog.com/ref-ShipVia> ?ref_ShipVia .
+  ?subject rdf:type :Order
+} WHERE {
+  BIND(StrDt(?EmployeeID, xsd:integer) AS ?EmployeeID_integer)
+  BIND(StrDt(?Freight, xsd:double) AS ?Freight_double)
+  BIND(StrDt(?OrderDate, xsd:dateTime) AS ?OrderDate_dateTime)
+  BIND(StrDt(?OrderID, xsd:integer) AS ?OrderID_integer)
+  BIND(StrDt(?RequiredDate, xsd:dateTime) AS ?RequiredDate_dateTime)
+  BIND(StrDt(?ShipVia, xsd:integer) AS ?ShipVia_integer)
+  BIND(StrDt(?ShippedDate, xsd:dateTime) AS ?ShippedDate_dateTime)
+  BIND(template("http://api.stardog.com/CustomerID-{CustomerID}") AS ?ref_CustomerID)
+  BIND(template("http://api.stardog.com/employeeID-{EmployeeID}") AS ?ref_EmployeeID)
+  BIND(template("http://api.stardog.com/OrderID-{OrderID}") AS ?subject)
+  BIND(template("http://api.stardog.com/ShipperID-{ShipVia}") AS ?ref_ShipVia)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Category]
+}
+TO {
+  ?subject <http://api.stardog.com/CategoryID> ?CategoryID_integer .
+  ?subject <http://api.stardog.com/CategoryName> ?CategoryName .
+  ?subject <http://api.stardog.com/Description> ?Description .
+  ?subject <http://api.stardog.com/Picture> ?Picture .
+  ?subject rdf:type :Category
+} WHERE {
+  BIND(StrDt(?CategoryID, xsd:integer) AS ?CategoryID_integer)
+  BIND(template("http://api.stardog.com/CategoryID={CategoryID}") AS ?subject)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Territory]
+}
+TO {
+  ?subject <http://api.stardog.com/RegionID> ?RegionID_integer .
+  ?subject <http://api.stardog.com/TerritoryDescription> ?TerritoryDescription .
+  ?subject <http://api.stardog.com/TerritoryID> ?TerritoryID .
+  ?subject <http://api.stardog.com/ref-RegionID> ?ref_RegionID .
+  ?subject rdf:type :Territory
+} WHERE {
+  BIND(StrDt(?RegionID, xsd:integer) AS ?RegionID_integer)
+  BIND(template("http://api.stardog.com/RegionID-{RegionID}") AS ?ref_RegionID)
+  BIND(template("http://api.stardog.com/TerritoryID-{TerritoryID}") AS ?subject)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Customer]
+}
+TO {
+  ?subject <http://api.stardog.com/Address> ?Address .
+  ?subject <http://api.stardog.com/City> ?City .
+  ?subject <http://api.stardog.com/CompanyName> ?CompanyName .
+  ?subject <http://api.stardog.com/ContactName> ?ContactName .
+  ?subject <http://api.stardog.com/ContactTitle> ?ContactTitle .
+  ?subject <http://api.stardog.com/Country> ?Country .
+  ?subject <http://api.stardog.com/CustomerID> ?CustomerID .
+  ?subject <http://api.stardog.com/Fax> ?Fax .
+  ?subject <http://api.stardog.com/Phone> ?Phone .
+  ?subject <http://api.stardog.com/PostalCode> ?PostalCode .
+  ?subject <http://api.stardog.com/Region> ?Region .
+  ?subject rdf:type :Customer
+} WHERE {
+  BIND(template("http://api.stardog.com/CustomerID-{CustomerID}") AS ?subject)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Supplier]
+}
+TO {
+  ?subject <http://api.stardog.com/Address> ?Address .
+  ?subject <http://api.stardog.com/City> ?City .
+  ?subject <http://api.stardog.com/CompanyName> ?CompanyName .
+  ?subject <http://api.stardog.com/ContactName> ?ContactName .
+  ?subject <http://api.stardog.com/ContactTitle> ?ContactTitle .
+  ?subject <http://api.stardog.com/Country> ?Country .
+  ?subject <http://api.stardog.com/Fax> ?Fax .
+  ?subject <http://api.stardog.com/HomePage> ?HomePage .
+  ?subject <http://api.stardog.com/Phone> ?Phone .
+  ?subject <http://api.stardog.com/PostalCode> ?PostalCode .
+  ?subject <http://api.stardog.com/Region> ?Region .
+  ?subject <http://api.stardog.com/SupplierID> ?SupplierID_integer .
+  ?subject rdf:type :Supplier
+} WHERE {
+  BIND(StrDt(?SupplierID, xsd:integer) AS ?SupplierID_integer)
+  BIND(template("http://api.stardog.com/SupplierID={SupplierID}") AS ?subject)
+}
+
+;
+
+MAPPING
+FROM SQL {
+  SELECT *
+  FROM [dbo].[Employee]
+}
+TO {
+  ?subject <http://api.stardog.com/Address> ?Address .
+  ?subject <http://api.stardog.com/BirthDate> ?BirthDate_dateTime .
+  ?subject <http://api.stardog.com/City> ?City .
+  ?subject <http://api.stardog.com/Country> ?Country .
+  ?subject <http://api.stardog.com/EmployeeID> ?EmployeeID_integer .
+  ?subject <http://api.stardog.com/Extension> ?Extension .
+  ?subject <http://api.stardog.com/FirstName> ?FirstName .
+  ?subject <http://api.stardog.com/HireDate> ?HireDate_dateTime .
+  ?subject <http://api.stardog.com/HomePhone> ?HomePhone .
+  ?subject <http://api.stardog.com/LastName> ?LastName .
+  ?subject <http://api.stardog.com/Notes> ?Notes .
+  ?subject <http://api.stardog.com/Photo> ?Photo .
+  ?subject <http://api.stardog.com/PhotoPath> ?PhotoPath .
+  ?subject <http://api.stardog.com/PostalCode> ?PostalCode .
+  ?subject <http://api.stardog.com/Region> ?Region .
+  ?subject <http://api.stardog.com/ReportsTo> ?ReportsTo_integer .
+  ?subject <http://api.stardog.com/Title> ?Title .
+  ?subject <http://api.stardog.com/TitleOfCourtesy> ?TitleOfCourtesy .
+  ?subject <http://api.stardog.com/ref-ReportsTo> ?ref_ReportsTo .
+  ?subject rdf:type :Employee
+} WHERE {
+  BIND(StrDt(?BirthDate, xsd:dateTime) AS ?BirthDate_dateTime)
+  BIND(StrDt(?EmployeeID, xsd:integer) AS ?EmployeeID_integer)
+  BIND(StrDt(?HireDate, xsd:dateTime) AS ?HireDate_dateTime)
+  BIND(StrDt(?ReportsTo, xsd:integer) AS ?ReportsTo_integer)
+  BIND(template("http://api.stardog.com/EmployeeID-{ReportsTo}") AS ?ref_ReportsTo)
+  BIND(template("http://api.stardog.com/EmployeeID-{ReportsTo}") AS ?subject)
+}

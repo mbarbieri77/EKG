@@ -1,0 +1,10 @@
+SELECT ?class (COUNT(?subject) as ?classCount)
+{
+    GRAPH <virtual://nwvg>   
+    {
+        ?subject ?predicate ?object.
+        ?subject rdf:type ?class .
+    }
+}
+GROUP BY ?class
+ORDER BY DESC(?classCount)

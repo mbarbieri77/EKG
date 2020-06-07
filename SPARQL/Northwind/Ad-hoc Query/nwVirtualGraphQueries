@@ -1,0 +1,55 @@
+SELECT (COUNT(?s) as ?numTriples)
+{
+  GRAPH <virtual://nwvg> 
+{
+    ?s ?p ?o .
+}
+}
+
+
+SELECT *
+{
+  GRAPH <virtual://nwvg> 
+{
+    ?s a ?o .
+}
+}
+
+SELECT *
+{
+    ?s a :product .
+}
+
+SELECT (COUNT(?s) as ?numTriples)
+{
+  GRAPH <virtual://nwvg> 
+{
+    ?s ?p ?o .
+}
+}
+
+
+SELECT *
+{
+  GRAPH <virtual://nwvg> 
+{
+    ?s a :OrderDetail .
+}
+}
+
+SELECT *
+{
+    ?s a :orderDetail .
+}
+
+
+SELECT *
+{
+  GRAPH <virtual://nwvg2> 
+{
+    ?s a :vwCurrentProductList .
+    ?s ?p ?o.
+}
+}
+
+

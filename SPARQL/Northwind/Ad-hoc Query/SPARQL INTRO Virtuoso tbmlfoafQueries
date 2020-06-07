@@ -1,0 +1,92 @@
+Virtuoso 
+
+Graph URI: 
+http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf
+
+Link:
+http://demo.openlinksw.com/sparql?default-graph-uri=http%3A%2F%2Fdig.csail.mit.edu%2F2008%2Fwebdav%2Ftimbl%2Ffoaf.rdf&query=SELECT+%3Fs+%3Fp+%3Fo%0D%0A%7B+%0D%0A++%3Chttp%3A%2F%2Fwww.w3.org%2FPeople%2FBerners-Lee%2Fcard%23i%3E+http%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2Fknows+%3Fo%0D%0A%7D%0D%0A&should-sponge=&format=text%2Fhtml&CXML_redir_for_subjs=121&CXML_redir_for_hrefs=&timeout=20000
+
+
+Queries:
+
+SELECT (<http://www.w3.org/People/Berners-Lee/card#i> as ?s) (<http://xmlns.com/foaf/0.1/knows> as ?p) ?o
+{ 
+  <http://www.w3.org/People/Berners-Lee/card#i> <http://xmlns.com/foaf/0.1/knows> ?o
+}
+
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT *
+{ 
+  <http://www.w3.org/People/Berners-Lee/card#i> foaf:knows ?o
+}
+
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT *
+WHERE 
+{
+ ?person foaf:name ?name .
+ ?person foaf:mbox ?email .
+}
+
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT ?person ?name ?email
+WHERE 
+{
+ ?person foaf:name ?name .
+ ?person foaf:mbox ?email .
+}
+
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+SELECT (<http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf#edd> as ?person) ?name ?email
+WHERE 
+{
+ <http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf#edd> foaf:name ?name .
+ <http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf#edd> foaf:mbox ?email .
+}
+
+
+PREFIX foaf:  <http://xmlns.com/foaf/0.1/>
+PREFIX timbl: <http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf#>
+
+SELECT (<http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf#edd> as ?person) ?name ?email
+WHERE 
+{
+ timbl:edd foaf:name ?name .
+ timbl:edd foaf:mbox ?email .
+}
+
+
+
+PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+PREFIX card: <http://www.w3.org/People/Berners-Lee/card#>
+SELECT (card:i as ?Lee) (foaf:knows as ?Knows) ?known ?homePage
+FROM <http://dig.csail.mit.edu/2008/webdav/timbl/foaf.rdf>
+WHERE 
+{
+  card:i foaf:knows ?known . 
+  ?known foaf:homepage ?homePage .
+}
+    
+
+DBpedia Endpoint:
+http://dbpedia.org/sparql
+
+
+Continue from here:
+http://www.cambridgesemantics.com/semantic-university/sparql-by-example
+Query #5
+Execute here:
+http://dbpedia.org/sparql
+
+
+
+
+
+
+
+
+

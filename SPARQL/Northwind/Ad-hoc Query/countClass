@@ -1,0 +1,7 @@
+SELECT ?class (COUNT(?subject) as ?classCount)
+WHERE {
+    ?subject ?predicate ?object.
+    ?subject rdf:type ?class .
+}
+GROUP BY ?class
+ORDER BY DESC(?classCount)
