@@ -1,44 +1,52 @@
-# Select all triples
-select 
-  *
-{ 
-   ?s ?p ?o
-}
 
 
-# Count classes
-SELECT  (COUNT(?subject) as ?classCount)
+# Selecting all triples
+SELECT ?subject ?predicate ?object
 WHERE {
-    ?subject ?predicate ?object.
-    ?subject rdf:type rdfs:Class .
+  ?subject ?predicate ?object .
 }
-GROUP BY ?class
-ORDER BY DESC(?classCount)
+ORDER BY ?subject
 
 
-# Count Properties
-SELECT (COUNT(?subject) as ?classCount)
+# Simplifying the query by using *, short variables names and omit the period and WHERE clause
+SELECT * {?s ?p ?o} ORDER BY ?s
+
+
+# Triple total count
+SELECT (COUNT(?s) as ?numTriples)
 WHERE {
-    ?subject ?predicate ?object.
-    ?subject rdf:type rdf:Property .
+    ?s ?p ?o .
 }
-GROUP BY ?class
-ORDER BY DESC(?classCount)
 
 
-# Count Class Instances
+# Selecting all properties of a Class
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :supplier)
+}
+
+
+
+# Counting class instances
 SELECT ?class (COUNT(?subject) as ?classCount)
 WHERE {
-    ?subject ?predicate ?object.
-    ?subject rdf:type ?class .
-    FILTER (?class != rdfs:Class && ?class != rdf:Property)
+  ?subject ?predicate ?object .
+  ?subject rdf:type ?class .
+  FILTER (?class != rdfs:Class && ?class != rdf:Property)
 }
 GROUP BY ?class
 ORDER BY DESC(?classCount)
 
 
-# Construct Graph
-# On the Visual Graph, select "No Group" in Nodes and choose iri for the Caption.
+# Constructing a graph
+# On the Visual Graph, select "No Group" in nodes and choose iri for the caption.
 CONSTRUCT {
     ?domain ?prop ?range
 }
@@ -53,292 +61,152 @@ WHERE {
 }
 
 
-# Prefix and Namespace
-# The next three queries return the same result
-# Display a Product Categogy using full URI
-select 
-  ?p
-  ?o
-where
-{ 
-  <http://api.stardog.com/category-8> ?p ?o 
+# Prefix and namespace
+# The next three queries return the same results
+
+# Selecting product details using full URI
+SELECT ?p ?o 
+WHERE { 
+  <http://www.mysparql.com/resource/northwind/product-2> ?p ?o .
 }
 
+# Selecting product details using a prefix
+PREFIX :<http://www.mysparql.com/resource/northwind/>
+SELECT ?p ?o 
+WHERE { 
+  :product-2 ?p ?o .
+} 
 
-# Display a Product Category using a Prefix
-PREFIX nw:<http://api.stardog.com/>
-select 
-*
-where
-{ 
-  nw:category-8 ?p ?o 
+# Selecting product details using a database namespace
+# An empty prefix has been added for the <http://api.stardog.com/> IRI in the database namespace list. 
+SELECT ?p ?o 
+WHERE { 
+  :product-2 ?p ?o .
 } 
 
 
-# Display a Product Category using a database Namespace
-# An empty prefix has been added to the database namespace list for the <http://api.stardog.com/> IRI.
-select 
-*
-where
+# Selecting product names
+SELECT ?s ?productName
 { 
-  :category-8 ?p ?o 
-} 
+	?s a :product .
+  ?s   :productName ?productName
+}
 
-
-#List of all products	
-select 
-  *
+# Omitting the subject
+SELECT ?s ?productName
 { 
-  ?s a <http://www.barbieri.com/northwind/product>
+	?s a :product ;
+       :productName ?productName
 }
 
 
-#List of all Product URIs using a Prefix
-PREFIX nw:<http://www.barbieri.com/northwind/>
-select *
-{ 
-  ?s a nw:product
-}
-
-
-#List of all Product Names
-PREFIX nw:<http://www.barbieri.com/northwind/>
-select *
-{ 
-	?s a nw:product;
-       nw:productName ?productName.
-}
-
-
-#List of Product Names and IDs
-PREFIX nw: <http://www.barbieri.com/northwind/>
-select 
+#Selecting product names and IDs
+SELECT 
   ?s 
-  ?ID 
+  ?id 
   ?productName 
-where
+WHERE
 { 
-  ?s a nw:product;
-  nw:productName ?productName;
-  nw:productID ?ID;
+  ?s a :product ;
+       :productName ?productName ;
+       :productID ?id .
 } 
 
 
-#Product Details using links with Category and Supplier (JOIN)
-PREFIX nw: <http://www.barbieri.com/northwind/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-select 
-  ?productLabel 
-  ?productName 
-  ?unitsInStock 
-  ?unitPrice 
-  ?categoryName 
-  ?supplierContactName
-where
+# Selecting the unit price of a product using filter
+select ?s ?o
 { 
-  ?Product nw:productName ?productName;
-   nw:unitsInStock ?unitsInStock;
-   nw:unitPrice ?unitPrice;
-   rdfs:label ?productLabel;
-   nw:hasCategory ?category;
-   nw:hasSupplier ?supplier.
-   ?category nw:name ?categoryName.
-   ?supplier nw:contactName ?supplierContactName.
-} 
-
-
-#Product Details again, defining product, category and supplier types
-PREFIX nw: <http://www.barbieri.com/northwind/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-select 
-  ?productLabel 
-  ?productName 
-  ?unitsInStock 
-  ?unitPrice 
-  ?categoryName 
-  ?supplierContactName
-where
-{ 
-   ?product a nw:product;
-   nw:productName ?productName;
-   nw:unitsInStock ?unitsInStock;
-   nw:unitPrice ?unitPrice;
-   rdfs:label ?productLabel;
-   nw:hasCategory ?category;
-   nw:hasSupplier ?supplier.
-   ?categor a nw:category;
-   nw:name ?categoryName.
-   ?supplier a nw:supplier;
-   nw:contactName ?supplierContactName.
-} 
-
-
-#Product Details with Filter
-PREFIX nw: <http://www.barbieri.com/northwind/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-select 
-  ?productLabel 
-  ?productName 
-  ?unitsInStock 
-  ?unitPrice 
-  ?categoryName 
-  ?supplierContactName
-where
-{ 
-  ?product a nw:product;
-   nw:productName ?productName;
-   nw:unitsInStock ?unitsInStock;
-   nw:unitPrice ?unitPrice;
-   nw:hasCategory ?category;
-   rdfs:label ?productLabel;
-   nw:hasSupplier ?supplier.
-   ?category a nw:category;
-   nw:name ?categoryName.
-   ?supplier a nw:supplier;
-   nw:contactName ?supplierContactName.
-   ?supplier nw:contactName "Charlotte Cooper".
-} 
-
-
-#Product Details with FILTER
-PREFIX nw: <http://www.barbieri.com/northwind/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-select 
-  ?productLabel 
-  ?productName 
-  ?unitsInStock 
-  ?unitPrice 
-  ?categoryName 
-  ?supplierContactName
-where
-{ 
-  ?product a nw:product;
-   nw:productName ?productName;
-   nw:unitsInStock ?unitsInStock;
-   nw:unitPrice ?unitPrice;
-   nw:hasCategory ?category;
-   rdfs:label ?productLabel;
-   nw:hasSupplier ?supplier.
-   ?category a nw:category;
-   nw:name ?categoryName.
-   ?supplier a nw:supplier;
-   nw:contactName ?supplierContactName.
-   FILTER(?supplierContactName = "Charlotte Cooper").
+	?s a :product .
+    ?s :unitPrice ?o .
+    FILTER (?s=:product-1)
 }
 
-
-#Supplier Product Count (3 instances)
-PREFIX nw: <http://www.barbieri.com/northwind/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-select 
-  (count(?product) as ?productCount)
-where
+# Selecting product, category and supplier details (Join) with filter
+SELECT 
+  ?product 
+  ?productLabel 
+  ?productName 
+  ?unitsInStock 
+  ?unitPrice 
+  ?categoryName 
+  ?contactName
+WHERE
 { 
-  ?product a nw:product;
-   nw:hasSupplier ?supplier.
-   ?supplier a nw:supplier;
-   nw:contactName ?supplierContactName.
-   FILTER(?supplierContactName = "Charlotte Cooper").
+  ?product a  :product ;
+              :productName ?productName ;
+              :unitsInStock ?unitsInStock ;
+              :unitPrice ?unitPrice ;
+              rdfs:label ?productLabel ;
+              :hasCategory ?category ;
+              :hasSupplier ?supplier .
+  ?category a :category ;
+              :name ?categoryName .
+  ?supplier a :supplier ;
+              :contactName ?contactName ;
+              :country "USA"
 } 
 
 
-#Grouping Data (Quantity of products sold by each Supplier Representative) 
-PREFIX nw: <http://www.barbieri.com/northwind/>
-PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-select 
+# Grouping Data (Quantity of products sold by each Supplier Representative) 
+SELECT 
   ?supplierContactName 
-  (count(?product) as ?productCount)
-where
+  (COUNT(?product) as ?productCount)
+WHERE
 { 
-  ?product a nw:product;
-   nw:hasSupplier ?supplier.
-   ?supplier a nw:supplier;
-   nw:contactName ?supplierContactName.
-   #FILTER(?supplierContactName = "Charlotte Cooper").
+  ?product a  :product ;
+              :hasSupplier ?supplier .
+  ?supplier a :supplier ;
+              :contactName ?supplierContactName .
+  #FILTER(?supplierContactName = "Charlotte Cooper") .
 } 
 GROUP BY ?supplierContactName
+HAVING (COUNT(?product) > 3)
 
 
 # Top 5 largest orders in number of products shipped in the USA
-PREFIX nw:<http://www.barbieri.com/northwind/>
 SELECT ?order (COUNT(*) as ?itemCount)
 WHERE
 { 
-	?item nw:belongsToOrder ?order.
-    ?order nw:shipCountry ?shipCountry;
-	       nw:orderID ?orderID.
-	FILTER (?shipCountry = "USA").
+	?item  :belongsToOrder ?order .
+  ?order :shipCountry ?shipCountry ;
+	       :orderID ?orderID .
+	FILTER (?shipCountry = "USA") .
 } 
 GROUP BY ?order 
 ORDER BY DESC (?itemCount) ASC (?orderID)
 LIMIT 5
 
 
-
-TODO: THE VIEW IN NORTHWIND DATABASE.
-
--- Top 5 largest orders in number of products shipped in the USA
-USE northwind;
-SELECT TOP 5
-  odr.OrderID as OrderID, 
-  Count(odt.ProductID) as Total
-FROM 
-  orders odr
-  inner join [order details] odt
-  ON odr.orderid = odt.orderid
-WHERE
-  odr.ShipCountry = 'USA'
-GROUP BY
-  odr.orderid
-ORDER BY 
-  Total DESC, 
-  OrderID 
-
-Result:
-OrderID	Total
-11077		25
-10657		6
-10847		6
-10294		5
-10324		5
+# Selecting all properties of "employee" Class
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :employee)
+}
 
 
-#SPARQL Equivalent
-# Top 5 largest orders in number of products shipped in the USA
-PREFIX nw:<http://www.barbieri.com/northwind/>
-SELECT ?order (COUNT(*) as ?itemCount)
-WHERE
-{ 
-	?item nw:belongsToOrder ?order.
-    ?order nw:shipCountry ?shipCountry;
-	       nw:orderID ?orderID.
-	FILTER (?shipCountry = "USA").
-} 
-GROUP BY ?order 
-ORDER BY DESC (?itemCount) ASC (?orderID)
-LIMIT 5
-
-
-Same Result:
-Order									ItemCount
-http://www.barbieri.com/northwind/Orders/11077	25
-http://www.barbieri.com/northwind/Orders/10657	6
-http://www.barbieri.com/northwind/Orders/10847	6
-http://www.barbieri.com/northwind/Orders/10294	5
-http://www.barbieri.com/northwind/Orders/10324	5
+# Basic select with specified columns
+SELECT
+  ?emp
+  ?label
+  ?lastName
+  ?firstName
+  ?title
+WHERE {
+  ?emp a :employee .
+  ?emp   foaf:lastName ?lastName ;
+         foaf:firstName ?firstName ;
+         foaf:title ?title ;
+         rdfs:label ?label .
+}
 
 
 
-SELECT ?o ?ShipCity ?ShipCountry ?CustomerName (COUNT(*) AS ?Total)
-WHERE
-{ 
-	?s <nw:Order_Details_OrderID> ?o.
-  	?o nw:Orders_ShipCity ?ShipCity;
-       nw:Orders_ShipCountry ?ShipCountry;
-  	   <http://www.barbieri.com/northwind/Orders_CustomerID> ?Customer.
-  	?Customer <http://www.barbieri.com/northwind/Customers_ContactName> ?CustomerName.
-  	FILTER (?ShipCountry = "USA").
-} 
-GROUP BY ?o ?ShipCity ?ShipCountry ?CustomerName
-ORDER BY DESC (?Total) ASC(?o)
-LIMIT 5
+
+
