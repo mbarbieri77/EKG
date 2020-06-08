@@ -12,10 +12,20 @@ ORDER BY ?subject
 SELECT * {?s ?p ?o} ORDER BY ?s
 
 
-# Triple total count
+# Total triple count
 SELECT (COUNT(?s) as ?numTriples)
 WHERE {
     ?s ?p ?o .
+}
+
+
+# Total triple count from virtual graph
+SELECT (COUNT(?s) as ?numTriples)
+WHERE {
+  GRAPH <virtual://nwvg> 
+  {
+      ?s ?p ?o .
+  }
 }
 
 
@@ -117,8 +127,8 @@ WHERE
 select ?s ?o
 { 
 	?s a :product .
-    ?s :unitPrice ?o .
-    FILTER (?s=:product-1)
+  ?s    :unitPrice ?o .
+  FILTER (?s=:product-1)
 }
 
 # Selecting product, category and supplier details (Join) with filter
@@ -143,7 +153,7 @@ WHERE
               :name ?categoryName .
   ?supplier a :supplier ;
               :contactName ?contactName ;
-              :country "USA"
+              :country "USA" .
 } 
 
 
@@ -191,6 +201,10 @@ WHERE {
 }
 
 
+
+################################################
+
+
 # Basic select with specified columns
 SELECT
   ?emp
@@ -200,13 +214,245 @@ SELECT
   ?title
 WHERE {
   ?emp a :employee .
-  ?emp   foaf:lastName ?lastName ;
+  ?emp   rdfs:label ?label ;
+         foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
-         foaf:title ?title ;
-         rdfs:label ?label .
+         foaf:title ?title .
 }
 
 
+# Basic select with string match filter
+SELECT
+  ?emp
+  ?label
+  ?lastName
+  ?firstName
+  ?title
+WHERE {
+  ?emp a :employee .
+  ?emp   rdfs:label ?label ;
+         foaf:lastName ?lastName ;
+         foaf:firstName ?firstName ;
+         foaf:title ?title ;
+         :country "USA" .
+}
 
+
+# The same filter can be applied as follows
+SELECT
+  ?emp
+  ?label
+  ?lastName
+  ?firstName
+  ?title
+WHERE {
+  ?emp a :employee .
+  ?emp   rdfs:label ?label ;
+         foaf:lastName ?lastName ;
+         foaf:firstName ?firstName ;
+         foaf:title ?title ;
+         :country ?country .
+  FILTER(?country = "USA")
+}
+
+
+# Character string match (Regex)
+SELECT
+  ?s # This object variable can be used to visualize the graph in Stardog Studio
+  ?companyLabel
+  ?companyName
+  ?contactName
+  ?address
+  ?city 
+  ?phone 
+WHERE {
+  ?s a :customer .
+  ?s   rdfs:label ?companyLabel ;
+       :companyName ?companyName ;
+       :contactName ?contactName ;
+       :address ?address ;
+       :city ?city ;
+       :phone ?phone .
+  FILTER (REGEX(?companyName, "Rest" , "i" )) # Case Insensitive
+}
+
+
+# Logical Operators, Join and simple type conversion. 
+SELECT
+  ?productName
+  (STR(?unitPrice) AS ?strUnitPrice) # converting integer to string
+  ?supplierName
+  ?region 
+  ?country 
+WHERE {
+  ?s a :product .
+  ?s   :productName ?productName ;
+       :productID ?productID ;
+       :hasSupplier ?supplier ; # Joining on supplier
+       :unitPrice ?unitPrice . 
+  # getting supplier properties
+  ?supplier :companyName ?supplierName ;  
+            :region ?region ;
+            :country ?country . 
+  FILTER((REGEX(?productName, "^T", "i") || ?productID > 46) && ?unitPrice > 16) . # Logical operators
+}
+
+
+# Data ranges
+SELECT
+  ?productID
+  ?productName
+  ?unitPrice
+WHERE {
+  ?s a :product .
+  ?s   :productID ?productID ;
+       :productName ?productName ;
+       :unitPrice ?unitPrice .
+  FILTER (?unitPrice >= 18 && ?unitPrice <= 20)
+}
+
+
+# Filtering on list of values
+SELECT
+  ?companyName
+  ?country
+WHERE {
+  ?s a :supplier .
+  ?s   :companyName ?companyName ;
+       :country ?country .
+  FILTER (UCASE(?country) = "JAPAN" || ?country = "Italy") # case sensitive
+}
+
+
+# Working with Nulls (next 3 examples)
+SELECT
+  ?companyName
+  ?fax
+WHERE {
+  ?s a :supplier .
+  ?s   :companyName ?companyName ;
+       :fax ?fax . # only suppliers with fax
+}
+
+
+SELECT
+  ?companyName
+  ?fax
+WHERE {
+  ?s a :supplier .
+  ?s   :companyName ?companyName ;
+       OPTIONAL {?s :fax ?fax} . # suppliers with and without fax
+}
+
+
+SELECT
+  ?companyName
+  ?fax
+WHERE {
+  ?s a :supplier .
+  ?s   :companyName ?companyName ;
+       OPTIONAL {?s :fax ?fax} . # suppliers without fax
+  FILTER (!BOUND(?fax))
+}
+
+
+# Sorting data
+SELECT
+  ?productID
+  ?productName
+  ?unitPrice
+  ?categoryName
+WHERE {
+  ?s a :product .
+  ?s   :productID ?productID ;
+       :productName ?productName ;
+       :unitPrice ?unitPrice ;
+       :hasCategory ?category .
+  ?category :name ?categoryName . # TODO: update this property to :categoryName
+}
+ORDER BY 
+  ASC(?categoryName)
+  DESC(?unitPrice)
+
+
+# Eliminating duplicates
+SELECT DISTINCT ?country
+WHERE{
+  ?s a :supplier .
+  ?s   :country ?country .
+}
+ORDER BY ?country # Default sorting
+
+
+# Column alias and string manipulation
+SELECT
+  (?employeeLabel AS ?label)
+  (?employeeCode AS ?code)
+  ?firstName
+  ?lastName
+ WHERE {
+   ?s a :employee .
+   ?s   foaf:firstName ?firstName ;
+        foaf:lastName ?lastName ;
+        rdfs:label ?employeeLabel ; 
+  BIND(CONCAT(?employeeLabel, "-", SUBSTR(?firstName,1,1), SUBSTR(?lastName,1,3)) AS ?employeeCode)
+ }
+
+
+# Limiting results - joining product and order.
+# Largest orders of a single product
+SELECT
+  ?orderID
+  ?productID
+  ?quantity
+WHERE {
+  ?orderDetail  a :orderDetail .
+  ?orderDetail    :quantity         ?quantity ;
+                  :belongsToOrder   ?order ;
+                  :hasProduct       ?product .
+  ?order          :orderID          ?orderID .
+  ?product        :productID        ?productID .
+}
+ORDER BY DESC(?quantity)
+LIMIT 5
+
+
+# Counting 
+SELECT (COUNT(?country) AS ?countryCount)
+WHERE{
+  ?s a :supplier .
+  ?s   :country ?country .
+}
+
+
+# Distinct Count
+SELECT (COUNT(DISTINCT ?country) AS ?countryCount)
+WHERE{
+  ?s a :supplier .
+  ?s   :country ?country .
+}
+
+
+# Grouping and Aggregations
+# Top 10 most sold products
+SELECT
+  ?prd
+  (SUM(?quantity) AS ?totalQty)  
+WHERE {
+  ?od a :orderDetail .
+  ?od   :quantity ?quantity ;
+        :hasProduct ?prd .
+}
+GROUP BY ?prd
+ORDER BY DESC(?totalQty)
+LIMIT 10
+
+
+# Federated query
+SELECT ?name
+WHERE {
+    <http://example.org/alice#me> foaf:knows [ foaf:name ?name ] .
+    SERVICE <http://dbpedia.org/sparql> { <http://dbpedia.org/resource/Snoopy> foaf:name ?name }
+}
 
 
