@@ -1,4 +1,11 @@
 
+# TODO:
+# https://www.stardog.com/tutorials/sparql/
+# Complete the series below with examples from the following links:
+# https://www.stardog.com/tutorials/getting-started-1/
+# https://www.stardog.com/tutorials/similarity-search/
+# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#idp899488
+
 
 # Selecting all triples
 SELECT ?subject ?predicate ?object
@@ -10,6 +17,13 @@ ORDER BY ?subject
 
 # Simplifying the query by using *, short variables names and omit the period and WHERE clause
 SELECT * {?s ?p ?o} ORDER BY ?s
+SELECT * {?s :hasProduct ?o} ORDER BY ?s
+
+# Returns all the outgoing edges of the node 
+# Check the results in Visual view mode
+DESCRIBE :orderDetail-10248-72
+DESCRIBE :order-10248
+DESCRIBE :product-1
 
 
 # Total triple count
@@ -42,6 +56,14 @@ WHERE {
     FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :supplier)
 }
 
+
+# Counting predicates (relationships)
+SELECT ?predicate (COUNT(?predicate) as ?predicateCount)
+WHERE {
+    ?subject ?predicate ?object .
+}
+GROUP BY ?predicate
+ORDER BY DESC(?predicateCount)
 
 
 # Counting class instances
@@ -218,6 +240,17 @@ WHERE {
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
          foaf:title ?title .
+}
+
+
+# Any employees in the USA? (returns true or false)
+ASK {
+  ?emp a :employee .
+  ?emp   rdfs:label ?label ;
+         foaf:lastName ?lastName ;
+         foaf:firstName ?firstName ;
+         foaf:title ?title ;
+         :country "USA" .
 }
 
 
@@ -448,11 +481,123 @@ ORDER BY DESC(?totalQty)
 LIMIT 10
 
 
-# Federated query
-SELECT ?name
-WHERE {
-    <http://example.org/alice#me> foaf:knows [ foaf:name ?name ] .
-    SERVICE <http://dbpedia.org/sparql> { <http://dbpedia.org/resource/Snoopy> foaf:name ?name }
+# Reasoning
+select * where { ?sub rdfs:subClassOf ?super }
+
+
+# Federated query (Wikibase) - turn off reasoning!
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT * 
+WHERE {  
+    SERVICE <https://query.wikidata.org/sparql> {
+         ?standard wdt:P1462 wd:Q37033 .
+        OPTIONAL{ ?standard wdt:P856 ?website }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" 
+        }
+    }
 }
 
 
+# Federated query (Wikibase)
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?_image
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?item wdt:P279 wd:Q28803.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+  OPTIONAL { ?item wdt:P18 ?_image. }
+  }
+}
+LIMIT 100
+
+
+# Show the names of 100 cities with a population larger than 1000000 in the native languages of their countries
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT ?city ?cityLabel ?country ?countryLabel ?lang ?langLabel ?langCode ?population
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?city wdt:P1082 ?population .
+  
+    FILTER(?population>1000000)
+  
+    ?city wdt:P31 wd:Q515;
+          wdt:P17 ?country;
+          rdfs:label ?cityLabel .
+    ?country wdt:P37 ?lang;
+            rdfs:label ?countryLabel .
+    ?lang wdt:P424 ?langCode;
+          rdfs:label ?langLabel .
+
+    FILTER(lang(?cityLabel)=?langCode)
+    FILTER(lang(?countryLabel)=?langCode)
+    FILTER(lang(?langLabel)=?langCode)
+  }
+} LIMIT 10
+
+
+# Who bought product A also bought which products? 
+# Step by step evolution of the query
+SELECT 
+  *
+WHERE {
+  ?orderDetail :belongsToOrder ?order ;
+               :hasProduct ?product .
+  ?order       :hasCustomer ?customer .
+}
+
+
+SELECT 
+  *
+WHERE {
+  ?product     ^:hasProduct  ?orderDetail .
+  ?orderDetail :belongsToOrder ?order .
+  ?order       :hasCustomer ?customer .
+}
+
+
+SELECT 
+  *
+WHERE {
+  ?product ^:hasProduct/:belongsToOrder ?order .
+  ?order   :hasCustomer ?customer .
+}
+
+
+SELECT DISTINCT
+  *
+WHERE {
+  ?product ^:hasProduct/:belongsToOrder/:hasCustomer ?customer .
+ 
+}
+
+
+# Who bought product-1 also bought which products?
+SELECT 
+  ?productA
+  ?productB
+  (COUNT (*) AS ?productBCount)
+WHERE {
+  ?productA ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) ?productB ;
+            :productID ?productID .
+  FILTER (?productA != ?productB && ?productA = :product-1)
+}
+GROUP BY ?productA ?productB
+ORDER BY DESC(?productBCount)
+
+
+
+# TODO
+# Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
+# Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
+#
