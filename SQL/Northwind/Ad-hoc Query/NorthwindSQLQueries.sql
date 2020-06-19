@@ -321,7 +321,15 @@ ORDER BY
     ProductBCount DESC, ProductA, ProductB
 
 
-    
+
+
+
+
+
+
+
+
+
   
 -- Top 5 largest orders in number of products shipped in the USA
 USE Northwind;
@@ -340,8 +348,70 @@ ORDER BY
   ProductCount DESC, 
   OrderID 
 
-  
--- 
+
+
+
+ -- For example, the following query returns the two most recent orders (assuming for the sake of this example that orderid represents chronological order) for each customer, generating the output shown in Table 1-13:
+SELECT 
+    cst.CustomerID, 
+    cst.City,
+    OrderID, 
+    OrderDate   
+FROM Customer AS cst
+CROSS APPLY
+(SELECT TOP(2) ord.OrderID, ord.OrderDate, cst.CustomerID
+FROM [Order] AS ord
+WHERE ord.customerid = cst.customerid ORDER BY OrderDate DESC) AS cpp;
+
+
+
+
+
+--This query returns customer categories based on count of orders (no orders, up to two orders, more than two orders)
+SELECT 
+    cst.CustomerID, 
+    cst.City,
+CASE
+WHEN COUNT(ord.OrderID) = 0 THEN 'No_Orders'
+WHEN COUNT(ord.OrderID) <= 2 THEN 'Upto_Two_Orders'
+WHEN COUNT(ord.OrderID) > 2 THEN 'More_Than_Two_Orders'
+END AS 
+    Category
+FROM 
+    Customer AS cst
+    LEFT OUTER JOIN [Order] AS ord 
+    ON cst.CustomerID = ord.CustomerID
+GROUP BY 
+    cst.CustomerID,cst.City;
+
+
+
+-- Suppose you wanted to know the number of customers that fall into each category per city. The following PIVOT query allows you to achieve this, generating the output shown in Table 1-16:
+SELECT 
+    City, 
+    No_Orders,
+    Upto_Two_Orders, 
+    More_Than_Two_Orders 
+FROM 
+    (SELECT 
+        cst.CustomerID, 
+        cst.City,
+        CASE
+        WHEN COUNT(ord.OrderID) = 0 THEN 'No_Orders'
+        WHEN COUNT(ord.OrderID) <= 2 THEN 'Upto_Two_Orders'
+        WHEN COUNT(ord.OrderID) > 2 THEN 'More_Than_Two_Orders'
+        END AS Category
+    FROM 
+        Customer AS cst
+        LEFT OUTER JOIN [Order] AS ord 
+        ON cst.CustomerID = ord.CustomerID
+    GROUP BY 
+        cst.CustomerID, 
+        cst.City) AS D PIVOT(COUNT(CustomerID) FOR Category 
+        IN([No_Orders],
+          [Upto_Two_Orders],
+          [More_Than_Two_Orders])) AS pvt;
+
 
 
 
