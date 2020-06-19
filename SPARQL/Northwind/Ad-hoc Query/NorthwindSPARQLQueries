@@ -227,9 +227,9 @@ WHERE {
 ################################################
 
 
-# Basic select with specified columns
+# Query 1 : Basic select with specified columns
 SELECT
-  ?emp
+# ?emp
   ?label
   ?lastName
   ?firstName
@@ -243,7 +243,7 @@ WHERE {
 }
 
 
-# Any employees in the USA? (returns true or false)
+# Query 2: Any employees in the USA? (returns true or false)
 ASK {
   ?emp a :employee .
   ?emp   rdfs:label ?label ;
@@ -254,7 +254,7 @@ ASK {
 }
 
 
-# Basic select with string match filter
+# Query 3: Basic select with string match filter
 SELECT
   ?emp
   ?label
@@ -271,7 +271,7 @@ WHERE {
 }
 
 
-# The same filter can be applied as follows
+# Query 4: The same filter can be applied as follows
 SELECT
   ?emp
   ?label
@@ -289,7 +289,7 @@ WHERE {
 }
 
 
-# Character string match (Regex)
+# Query 5: Character string match (Regex)
 SELECT
   ?s # This object variable can be used to visualize the graph in Stardog Studio
   ?companyLabel
@@ -310,7 +310,7 @@ WHERE {
 }
 
 
-# Logical Operators, Join and simple type conversion. 
+# Query 6: Logical Operators, Join and simple type conversion. 
 SELECT
   ?productName
   (STR(?unitPrice) AS ?strUnitPrice) # converting integer to string
@@ -325,22 +325,28 @@ WHERE {
        :unitPrice ?unitPrice . 
   # getting supplier properties
   ?supplier :companyName ?supplierName ;  
-            :region ?region ;
-            :country ?country . 
-  FILTER((REGEX(?productName, "^T", "i") || ?productID > 46) && ?unitPrice > 16) . # Logical operators
+            :country ?country ; 
+  OPTIONAL {?supplier  :region ?region }.
+  FILTER((REGEX(?productName, "^T", "i") || ?productID = 46) && ?unitPrice > 16) . # Logical operators
 }
 
 
-# Data ranges
+# Query 7: Data ranges
 SELECT
   ?productID
   ?productName
+  ?supplierID
+  ?companyName
   ?unitPrice
 WHERE {
   ?s a :product .
   ?s   :productID ?productID ;
        :productName ?productName ;
+       :hasSupplier ?supplier ; 
        :unitPrice ?unitPrice .
+  ?supplier a :supplier ;
+       :companyName ?companyName ;
+       :supplierID ?supplierID .
   FILTER (?unitPrice >= 18 && ?unitPrice <= 20)
 }
 
@@ -582,7 +588,22 @@ WHERE {
 }
 
 
-# Who bought product-1 also bought which products?
+# Products frequently bought together in the same order. 
+SELECT 
+  ?productA
+  ?productB
+  (COUNT (*) AS ?productBCount)
+WHERE {
+  ?productA ^:hasProduct/:belongsToOrder/^(^:hasProduct/:belongsToOrder) ?productB ;
+            :productID ?productID .
+  FILTER (?productA != ?productB && ?productA = :product-61) # Filtering on product-61 for testing
+}
+GROUP BY ?productA ?productB
+ORDER BY DESC(?productBCount) ?productA ?productB
+LIMIT 5
+
+
+# Customers who bought a product also bought which other products across all orders?
 SELECT 
   ?productA
   ?productB
@@ -590,14 +611,28 @@ SELECT
 WHERE {
   ?productA ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) ?productB ;
             :productID ?productID .
-  FILTER (?productA != ?productB && ?productA = :product-1)
+  FILTER (?productA != ?productB && ?productA = :product-61) # Filtering on product-61 for testing purposes
 }
 GROUP BY ?productA ?productB
-ORDER BY DESC(?productBCount)
+ORDER BY DESC(?productBCount) ?productA ?productB
+LIMIT 5
+
+# 16a-cowriters-paths.sparql
+# dataset: music
+
+paths
+    start ?artist = :Paul_McCartney
+    end ?cowriter
+via {
+    ?artist ^:writer/:writer ?cowriter
+}
+order by ?cowriter
 
 
 
 # TODO
 # Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
 # Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
-#
+
+
+
