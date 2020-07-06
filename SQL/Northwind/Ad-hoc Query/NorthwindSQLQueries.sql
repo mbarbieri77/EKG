@@ -351,22 +351,44 @@ ORDER BY
 
 
 
- -- For example, the following query returns the two most recent orders (assuming for the sake of this example that orderid represents chronological order) for each customer, generating the output shown in Table 1-13:
+ --the following query returns the two most recent orders (assuming for the sake of this example that orderid represents chronological order)
+--for each customer, generating the output shown below. 
 SELECT 
     cst.CustomerID, 
     cst.City,
     OrderID, 
     OrderDate   
-FROM Customer AS cst
+FROM 
+    Customer AS cst
 CROSS APPLY
-(SELECT TOP(2) ord.OrderID, ord.OrderDate, cst.CustomerID
-FROM [Order] AS ord
-WHERE ord.customerid = cst.customerid ORDER BY OrderDate DESC) AS cpp;
+    (SELECT TOP(2) 
+            ord.OrderID, 
+            ord.OrderDate, 
+            cst.CustomerID
+        FROM 
+            [Order] AS ord
+        WHERE 
+            ord.customerid = cst.customerid 
+        ORDER BY 
+            OrderDate DESC) AS cpp;
 
 
+--If you also want to return customers that made no orders, use OUTER APPLY as follows, generating the output shown below.
+SELECT 
+    cst.CustomerID, cst.City, OrderID 
+FROM 
+    dbo.Customer AS cst
+OUTER APPLY
+    (SELECT TOP(2) 
+        OrderID, 
+        CustomerID
+        FROM dbo.[Order] AS ord
+        WHERE 
+            ord.CustomerID = cst.CustomerID 
+        ORDER BY 
+            OrderID DESC) AS OA;
 
-
-
+--the following query, which I will later use as the left input to the PIVOT operator.
 --This query returns customer categories based on count of orders (no orders, up to two orders, more than two orders)
 SELECT 
     cst.CustomerID, 
@@ -385,8 +407,8 @@ GROUP BY
     cst.CustomerID,cst.City;
 
 
-
--- Suppose you wanted to know the number of customers that fall into each category per city. The following PIVOT query allows you to achieve this, generating the output shown in Table 1-16:
+-- Suppose you wanted to know the number of customers that fall into each category per city. 
+--The following PIVOT query allows you to achieve this, generating the output shown below:
 SELECT 
     City, 
     No_Orders,
@@ -411,6 +433,111 @@ FROM
         IN([No_Orders],
           [Upto_Two_Orders],
           [More_Than_Two_Orders])) AS pvt;
+
+
+--an OVER clause is used with the COUNT aggregate function in the SELECT list; the output of this query is shown below:
+SELECT 
+    OrderID, 
+    CustomerID,
+    COUNT(*) OVER(PARTITION BY CustomerID) AS Num_Orders
+FROM 
+    dbo.[Order]
+WHERE
+     CustomerID IS NOT NULL
+AND 
+    OrderID % 2 = 1;
+
+
+--the following query sorts the rows according to the total number of output rows for the customer (in descending order), 
+--and generates the output shown below
+SELECT 
+    OrderID, 
+    CustomerID
+FROM 
+    dbo.[Order]
+WHERE 
+    CustomerID IS NOT NULL
+AND 
+    OrderID % 2 = 1
+ORDER BY
+    COUNT(*) OVER(PARTITION BY CustomerID) DESC;
+
+
+--Set operations compare complete rows between the two inputs. UNION returns one result set with the rows from both inputs.
+--If the ALL option is not specified, UNION removes duplicate rows from the result set.
+--In terms of logical processing, each input query is first processed separately with all its relevant phases. 
+--The set operation is then applied, and if an ORDER BY clause is specified, it is applied to the result set.
+--Take the following query, which generates the output shown below
+SELECT 
+    'O' AS Letter, 
+    CustomerID, 
+    OrderID 
+FROM 
+    dbo.[Order]
+WHERE 
+    CustomerID LIKE '%O%' 
+    UNION ALL
+SELECT 
+    'S' AS letter, 
+    CustomerID, 
+    OrderID 
+FROM 
+    dbo.[Order] 
+WHERE 
+    CustomerID LIKE '%S%'
+ORDER BY 
+    Letter, 
+    CustomerID, 
+    OrderID
+
+
+--In the following OUTER JOIN query, the predicate Products.UnitPrice > 10 
+--disqualifies all additional rows that would be produced by the OUTER JOIN, and therefore, 
+--the OUTER JOIN is simplified into an INNER join:
+USE Northwind;
+SELECT
+    odd.OrderID, 
+    prd.ProductName, 
+    odd.Quantity, 
+    odd.UnitPrice
+FROM 
+    dbo.OrderDetail as odd
+LEFT OUTER JOIN 
+    dbo.Product as prd
+ON 
+    odd.ProductID = prd.ProductID 
+WHERE 
+    prd.UnitPrice > 10;
+
+
+--This query finds all orders with one of the five U.S. EmployeeID s, groups those orders by CustomerID , 
+--and returns CustomerID s that have (all) five distinct EmployeeID values in their group of orders.
+SELECT 
+    CustomerID 
+FROM 
+    dbo.[Order] 
+WHERE 
+    EmployeeID IN
+        (SELECT 
+            EmployeeID
+        FROM 
+            dbo.Employee
+        WHERE   
+            Country = N'USA') 
+GROUP BY 
+    CustomerID
+HAVING 
+    COUNT(DISTINCT EmployeeID) =
+        (SELECT 
+            COUNT(*) 
+        FROM 
+            dbo.Employee 
+        WHERE 
+            Country = N'USA');
+
+
+
+
 
 
 
