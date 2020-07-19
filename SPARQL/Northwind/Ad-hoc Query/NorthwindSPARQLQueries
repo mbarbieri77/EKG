@@ -53,7 +53,7 @@ WHERE {
         ?object a ?oClass .
     }
     BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
-    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :supplier)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :order)
 }
 
 
@@ -78,7 +78,7 @@ ORDER BY DESC(?classCount)
 
 
 # Constructing a graph
-# On the Visual Graph, select "No Group" in nodes and choose iri for the caption.
+# On the Visual Graph, select "No Group" in nodes and choose IRI for the caption.
 CONSTRUCT {
     ?domain ?prop ?range
 }
@@ -116,7 +116,6 @@ WHERE {
   :product-2 ?p ?o .
 } 
 
-
 # Selecting product names
 SELECT ?s ?productName
 { 
@@ -146,14 +145,14 @@ WHERE
 
 
 # Selecting the unit price of a product using filter
-select ?s ?o
+select ?s ?o 
 { 
 	?s a :product .
   ?s    :unitPrice ?o .
   FILTER (?s=:product-1)
 }
 
-# Selecting product, category and supplier details (Join) with filter
+# Selecting product, category and supplier details (JOIN and FILTER)
 SELECT 
   ?product 
   ?productLabel 
@@ -235,18 +234,19 @@ SELECT
   ?firstName
   ?title
 WHERE {
-  ?emp a :employee .
-  ?emp   rdfs:label ?label ;
+  ?emp a :employee ;
+         rdfs:label ?label ;
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
          foaf:title ?title .
 }
 
 
-# Query 2: Any employees in the USA? (returns true or false)
+# Returns a boolean indicating whether a query pattern matches or not.
+# Query 2: Do I have any employees in the USA?
 ASK {
-  ?emp a :employee .
-  ?emp   rdfs:label ?label ;
+  ?emp a :employee ;
+         rdfs:label ?label ;
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
          foaf:title ?title ;
@@ -254,7 +254,7 @@ ASK {
 }
 
 
-# Query 3: Basic select with string match filter
+# Query 3a: Basic select with specified condition
 SELECT
   ?emp
   ?label
@@ -262,25 +262,8 @@ SELECT
   ?firstName
   ?title
 WHERE {
-  ?emp a :employee .
-  ?emp   rdfs:label ?label ;
-         foaf:lastName ?lastName ;
-         foaf:firstName ?firstName ;
-         foaf:title ?title ;
-         :country "USA" .
-}
-
-
-# Query 4: The same filter can be applied as follows
-SELECT
-  ?emp
-  ?label
-  ?lastName
-  ?firstName
-  ?title
-WHERE {
-  ?emp a :employee .
-  ?emp   rdfs:label ?label ;
+  ?emp a :employee ;
+         rdfs:label ?label ;
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
          foaf:title ?title ;
@@ -289,18 +272,35 @@ WHERE {
 }
 
 
-# Query 5: Character string match (Regex)
+# Query 3b: The same filter can be applied directly as follows
 SELECT
-  ?s # This object variable can be used to visualize the graph in Stardog Studio
-  ?companyLabel
+  #?emp
+  #?label
+  ?lastName
+  ?firstName
+  ?title
+WHERE {
+  ?emp a :employee ;
+         rdfs:label ?label ;
+         foaf:lastName ?lastName ;
+         foaf:firstName ?firstName ;
+         foaf:title ?title ;
+         :country "USA" .
+}
+
+
+# Query 4: Basic select with pattern search (Regex)
+SELECT
+  #?s # This object variable can be used to visualize the graph in Stardog Studio
+  #?companyLabel
   ?companyName
   ?contactName
   ?address
   ?city 
   ?phone 
 WHERE {
-  ?s a :customer .
-  ?s   rdfs:label ?companyLabel ;
+  ?s a :customer ;
+       rdfs:label ?companyLabel ;
        :companyName ?companyName ;
        :contactName ?contactName ;
        :address ?address ;
@@ -310,7 +310,7 @@ WHERE {
 }
 
 
-# Query 6: Logical Operators, Join and simple type conversion. 
+# Query 5: Join and Logical Operators
 SELECT
   ?productName
   (STR(?unitPrice) AS ?strUnitPrice) # converting integer to string
@@ -318,8 +318,8 @@ SELECT
   ?region 
   ?country 
 WHERE {
-  ?s a :product .
-  ?s   :productName ?productName ;
+  ?s a :product ;
+       :productName ?productName ;
        :productID ?productID ;
        :hasSupplier ?supplier ; # Joining on supplier
        :unitPrice ?unitPrice . 
@@ -331,7 +331,7 @@ WHERE {
 }
 
 
-# Query 7: Data ranges
+# Query 6: Filtering on Data ranges
 SELECT
   ?productID
   ?productName
@@ -339,8 +339,8 @@ SELECT
   ?companyName
   ?unitPrice
 WHERE {
-  ?s a :product .
-  ?s   :productID ?productID ;
+  ?s a :product ;
+       :productID ?productID ;
        :productName ?productName ;
        :hasSupplier ?supplier ; 
        :unitPrice ?unitPrice .
@@ -351,59 +351,65 @@ WHERE {
 }
 
 
-# Filtering on list of values
+# Query 7: Filtering on list of values
 SELECT
   ?companyName
   ?country
 WHERE {
-  ?s a :supplier .
-  ?s   :companyName ?companyName ;
+  ?s a :supplier ;
+      :companyName ?companyName ;
        :country ?country .
   FILTER (UCASE(?country) = "JAPAN" || ?country = "Italy") # case sensitive
 }
 
 
 # Working with Nulls (next 3 examples)
+# Fax was a machine from the 90s able to scan and transmit a document over the phone line
+
+# Query 8a: Select only suppliers that have a fax number
 SELECT
   ?companyName
   ?fax
 WHERE {
-  ?s a :supplier .
-  ?s   :companyName ?companyName ;
-       :fax ?fax . # only suppliers with fax
+  ?s a :supplier ;
+       :companyName ?companyName ;
+       :fax ?fax . 
 }
 
 
+# Query 8b: Select all suppliers
 SELECT
   ?companyName
   ?fax
 WHERE {
-  ?s a :supplier .
-  ?s   :companyName ?companyName ;
-       OPTIONAL {?s :fax ?fax} . # suppliers with and without fax
+  ?s a :supplier ;
+       :companyName ?companyName ;
+       OPTIONAL {?s :fax ?fax} . 
 }
 
 
+# Query 8c: Select only suppliers that don't have a fax number
 SELECT
   ?companyName
   ?fax
 WHERE {
-  ?s a :supplier .
-  ?s   :companyName ?companyName ;
-       OPTIONAL {?s :fax ?fax} . # suppliers without fax
+  ?s a :supplier ;
+       :companyName ?companyName ;
+       OPTIONAL {?s :fax ?fax} . 
   FILTER (!BOUND(?fax))
 }
 
 
 # Sorting data
+# Query 9: Select product details sorted by category name and unit price
 SELECT
   ?productID
   ?productName
   ?unitPrice
   ?categoryName
 WHERE {
-  ?s a :product .
-  ?s   :productID ?productID ;
+  ?s a :product ;
+       :productID ?productID ;
        :productName ?productName ;
        :unitPrice ?unitPrice ;
        :hasCategory ?category .
@@ -415,37 +421,42 @@ ORDER BY
 
 
 # Eliminating duplicates
+# Query 10: Select all countries I buy from
+# There are more than one supplier per country
 SELECT DISTINCT ?country
 WHERE{
-  ?s a :supplier .
-  ?s   :country ?country .
+  ?s a :supplier ;
+       :country ?country .
 }
 ORDER BY ?country # Default sorting
 
 
-# Column alias and string manipulation
+# Column alias and string concatenation
+# Query 11: Select employee header
 SELECT
   (?employeeLabel AS ?label)
   (?employeeCode AS ?code)
   ?firstName
   ?lastName
  WHERE {
-   ?s a :employee .
-   ?s   foaf:firstName ?firstName ;
+   ?s a :employee ;
+        foaf:firstName ?firstName ;
         foaf:lastName ?lastName ;
         rdfs:label ?employeeLabel ; 
   BIND(CONCAT(?employeeLabel, "-", SUBSTR(?firstName,1,1), SUBSTR(?lastName,1,3)) AS ?employeeCode)
  }
 
 
-# Limiting results - joining product and order.
-# Largest orders of a single product
+# Limiting results
+# Query 12: Top 5 largest orders of a single product
 SELECT
   ?orderID
   ?productID
   ?quantity
 WHERE {
   ?orderDetail  a :orderDetail .
+  ?order        a :order .
+  ?product      a :product .
   ?orderDetail    :quantity         ?quantity ;
                   :belongsToOrder   ?order ;
                   :hasProduct       ?product .
@@ -456,40 +467,446 @@ ORDER BY DESC(?quantity)
 LIMIT 5
 
 
-# Counting 
+# Query 13: Counting 
 SELECT (COUNT(?country) AS ?countryCount)
 WHERE{
-  ?s a :supplier .
-  ?s   :country ?country .
+  ?s a :supplier ;
+       :country ?country .
 }
 
 
-# Distinct Count
+# Distinct Counting
+# Query 14: Total number of countries I buy from 
 SELECT (COUNT(DISTINCT ?country) AS ?countryCount)
 WHERE{
-  ?s a :supplier .
-  ?s   :country ?country .
+  ?s a :supplier ;
+       :country ?country .
 }
 
 
-# Grouping and Aggregations
-# Top 10 most sold products
+# Grouping and Aggregating data
+# Query 15a: Top 10 most sold products
 SELECT
   ?prd
-  (SUM(?quantity) AS ?totalQty)  
+  (SUM(?quantity) AS ?totalQtySold)  
 WHERE {
-  ?od a :orderDetail .
-  ?od   :quantity ?quantity ;
+  ?od a :orderDetail ;
+        :quantity ?quantity ;
         :hasProduct ?prd .
 }
 GROUP BY ?prd
-ORDER BY DESC(?totalQty)
+ORDER BY DESC(?totalQtySold)
 LIMIT 10
+
+
+# Query 15b: Top 5 largest orders shipped to the USA
+SELECT
+  ?orderID
+  (SUM(?unitPrice * ?quantity * (1 - ?discount)) AS ?total) 
+WHERE {
+  ?order        a :order ;
+                  :orderID ?orderID ;
+                  :shipCountry "USA" .
+  ?orderDetail  a :orderDetail ;
+                  :belongsToOrder ?order ;
+                  :unitPrice ?unitPrice ;
+                  :quantity ?quantity ;
+                  :discount ?discount .
+}
+GROUP BY
+  ?orderID
+ORDER BY 
+  DESC(?total)
+LIMIT 5
+
+
+# Recommendation - Products frequently bought together (Queries 16, 17 and 18)
+
+# Query 16: Number of times products 2 and 61 where bought by the same customer
+SELECT 
+  (COUNT (1) AS ?Count)
+WHERE {
+  :product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61 .
+}
+
+
+# Here are the detailed steps to develop Query 16.
+# For more details on Property Path, please refer to https://www.stardog.com/tutorials/sparql/#toc7.
+
+# Triple pattern matching order, orderDetail, product and customer nodes that are directly connected. 
+# List order items that contain product-61
+SELECT 
+  *
+WHERE {
+  ?orderDetail :hasProduct ?product ; 
+               :belongsToOrder ?order .
+  ?order       :hasCustomer ?customer .
+  FILTER (?product = :product-61)
+}
+
+# Invert the hasProduct path expression to match the following direction: product --> orderDetail --> order --> customer
+# The same result is returned
+SELECT 
+  *
+WHERE {
+  ?product     ^:hasProduct  ?orderDetail . # Invert direction
+  ?orderDetail :belongsToOrder ?order .
+  ?order       :hasCustomer ?customer .
+  FILTER (?product = :product-61)
+}
+
+# Use a sequence path to omit the binding of the ?orderDetail variable.  
+SELECT 
+  *
+WHERE {
+  ?product ^:hasProduct/:belongsToOrder ?order .
+  ?order   :hasCustomer ?customer .
+  FILTER (?product = :product-61)
+}
+
+# And then again, to omit the binding of the ?order varaible.
+SELECT DISTINCT # eliminates duplicates in case the same customer bouth a product more than once
+  *
+WHERE {
+  ?product ^:hasProduct/:belongsToOrder/:hasCustomer ?customer .
+  FILTER (?product = :product-61)
+}
+ORDER BY ?product
+
+# Remove the ?product variable and apply the filter in the tripl. 
+SELECT DISTINCT # eliminates duplicates in case the same customer bouth a product more than once
+  *
+WHERE {
+  :product-61 ^:hasProduct/:belongsToOrder/:hasCustomer ?customer .
+}
+ORDER BY ?product
+
+
+
+# Query 17: Customers who bought product-61 also bought which products across all orders?
+SELECT 
+  ?productA
+  ?productB
+  (COUNT (*) AS ?productBCount)
+WHERE {
+  ?productA ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) ?productB ;
+            :productID ?productID .
+  FILTER (?productA != ?productB && ?productA = :product-61) # Filtering on product-61 for testing purposes
+}
+GROUP BY ?productA ?productB
+ORDER BY DESC(?productBCount) ?productA ?productB
+LIMIT 5
+
+
+# Query 18: Customers who bought product-61 also bought which products in the same order?
+SELECT 
+  ?productA
+  ?productB
+  (COUNT (*) AS ?productBCount)
+WHERE {
+  ?productA ^:hasProduct/:belongsToOrder/^(^:hasProduct/:belongsToOrder) ?productB ;
+            :productID ?productID .
+  FILTER (?productA != ?productB && ?productA = :product-61) # Filtering on product-61 for testing
+}
+GROUP BY ?productA ?productB
+ORDER BY DESC(?productBCount) ?productA ?productB
+LIMIT 5
+
+
+
+# Insert Customer
+
+# Selecting all properties of customer Class
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :customer)
+}
+
+
+# Lookig into existing triples from an existing customer
+# Class
+<http://www.mysparql.com/resource/northwind/customer> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+# Instance
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.mysparql.com/resource/northwind/customer> .
+# Properties
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/fax> "030-0076545" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/address> "Obere Str. 57" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/phone> "030-0074321" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.w3.org/2000/01/rdf-schema#label> "customer-ALFKI" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/city> "Berlin" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/contactTitle> "Sales Representative" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/companyName> "Alfreds Futterkiste" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/country> "Germany" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/postalCode> "12209" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/customerID> "ALFKI" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/contactName> "Maria Anders" .
+# Linking customer to an order 
+<http://www.mysparql.com/resource/northwind/order-10643> <http://www.mysparql.com/resource/northwind/hasCustomer> <http://www.mysparql.com/resource/northwind/customer-ALFKI> .
+# order Properties
+# Linking an order to orderDetail
+# oderDetail Properties
+
+
+# Query 19: Insert a new customer
+INSERT DATA {
+  :customer-AAAAA a :customer ;
+  rdfs:label "customer-AAAAA" ;
+  :customerID "AAAAA" ;
+  :companyName "agnos" ;
+  :contactName "Jacobus Geluk" ;
+  :contactTitle "CTO" ;
+  :address "Abbey Road" ;
+  :city "London" .
+}
+
+
+# Check if new customer has been inserted successfully
+DESCRIBE :customer-AAAAA     
+SELECT
+  *
+WHERE {
+  ?s a :customer ;
+       rdfs:label ?companyLabel ;
+       :companyName ?companyName ;
+       :contactName ?contactName ;
+       :contactTitle ?contactTitle;
+       :address ?address ;
+       :city ?city .
+       # need to specify optional to match patterns for nodes that may not exist. 
+       OPTIONAL {?s :phone ?phone}
+       OPTIONAL {?s :fax ?fax}
+       OPTIONAL {?s :region ?region}
+       OPTIONAL {?s :country ?country}
+       OPTIONAL {?s :postalCode ?postalCode}      
+}
+ORDER BY ?s 
+
+# Country and Postal Code should be mandatory and constraints wil be added to enforced this rule later. 
+# Let's update the customer with the required information.
+# Query 20a: Add new triples to existing customer
+INSERT DATA {
+  :customer-AAAAA a :customer ;
+  :country "United Kingdom" ;
+  :postalCode "SW1A 2AA" . # there was a spelling mistake in the property name and "portalCode" was inserted instead of "postalCode". 
+}
+
+
+# Let's check the property to be deleted.
+CONSTRUCT {
+  ?s :portalCode ?portalCode
+}
+WHERE {
+  ?s a :customer ;
+       rdfs:label "customer-AAAAA" ;
+       :portalCode ?portalCode        
+}
+
+
+# You can use the result of the construct above or just do a straight delete as per below. 
+# It will not return an error if a triple doesn't exist.
+DELETE DATA
+{
+  :customer-AAAAA :portalCode "SW1A 2AA" .
+}
+
+
+# Checking if the triple went away. 
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :customer)
+}
+
+
+# Checking how new triple for new address will look like.
+CONSTRUCT {
+:customer-AAAAA :address ?newAddress .
+:customer-AAAAA :OldAddress ?OldAddress .
+:customer-AAAAA :region "hard-code" . # You can also hard code triples in the construct. 
+}
+WHERE {
+   :customer-AAAAA a :customer ;
+     :address ?OldAddress ;
+     BIND("10 Downing Road" AS ?newAddress) .
+}
+
+
+# Update Address of customer-AAAAA
+## Query 20b: Update existing customer address
+DELETE {
+:customer-AAAAA :address ?address 
+}
+INSERT {
+  :customer-AAAAA :address ?newAddress
+}
+WHERE {
+   :customer-AAAAA a :customer ;
+     :address ?address ;
+     BIND("10 Downing Road" AS ?newAddress) .
+}
+
+# Checking updated data
+SELECT
+  *
+WHERE {
+  ?s a :customer ;
+       rdfs:label ?companyLabel ;
+       :companyName ?companyName ;
+       :contactName ?contactName ;
+       :contactTitle ?contactTitle;
+       :address ?address ;
+       :city ?city .
+       OPTIONAL {?s :phone ?phone}
+       OPTIONAL {?s :fax ?fax}
+       OPTIONAL {?s :region ?region}
+       OPTIONAL {?s :country ?country}
+       OPTIONAL {?s :postalCode ?postalCode}      
+}
+ORDER BY ?s 
+
+
+# Checking number of Customers and Orders
+# The numbers on relational and triplestore database are matching. 
+SELECT * WHERE {?custormer a :customer.} # 92
+SELECT * WHERE {?order     a :order .}   # 830
+
+
+# Query 21: Customers who placed at least one order 
+SELECT DISTINCT 
+  ?customer
+  ?companyName
+  ?postalCode
+  ?city
+  ?country 
+WHERE {
+  ?order    a :order .
+  ?customer a :customer .
+  ?order      :hasCustomer ?customer .
+  ?customer   :customerID ?customerID ;
+              :companyName ?companyName ;
+              :city ?city ;
+              :country ?country .
+  OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
+}
+ORDER BY
+  ?customer
+
+
+# Query 22: Customers who never placed an order
+SELECT DISTINCT 
+  ?customer
+  #?companyName
+  #?postalCode
+  #?city
+  #?country 
+WHERE {
+  ?customer a :customer .
+  ?order    a :order .
+  OPTIONAL {?customer ^:hasCustomer ?order} 
+
+  #?customer   :customerID ?customerID ;
+  #            :companyName ?companyName ;
+  #            :city ?city ;
+  #            :country ?contry .
+  #OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
+}
+ORDER BY
+  ?customer
+
+
+
+
+SELECT (COUNT(?s) as ?numTriples)
+WHERE {
+  GRAPH <virtual://nwvg> 
+  {
+      ?s ?p ?o .
+  }
+}
+
+
+# Selecting all properties of a Class in the virtual Graph - Times out!!
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+  GRAPH <virtual://nwvg> 
+  {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :Order)
+  }
+}
+
+
+# SHACL 
+# Inserts that break SHACK constraints
+# ontotext GraphDB
+# Federated query
+# Hierarquical data
+# PIVOT and UNPIVOT data
+# Running totals
+# Power BI
+# Property Path
+# Examples in https://www.w3.org/TR/sparql11-query/#OptionalMatching
+# RDF*
+# Importing data from virtual graph
+# Temporal Data
+# OWL
+# ETL
+
+#  Are an Insert and delete in the same session an atomic transaction?
+#  SHACL overhead on the writes
+#  Named graph FROM vs FROM NAMED
+#  Multi tenancy and row level security
+#  Encryption
+#  Temporal data 
+#  Reasoning on Virtual Graph?
+#  With OWL, do I need RDFS at all?
+
+
+
+
+
+###################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# TODO
+# Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
+# Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
 
 
 # Reasoning
 select * where { ?sub rdfs:subClassOf ?super }
-
 
 # Federated query (Wikibase) - turn off reasoning!
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
@@ -550,89 +967,3 @@ WHERE {
     FILTER(lang(?langLabel)=?langCode)
   }
 } LIMIT 10
-
-
-# Who bought product A also bought which products? 
-# Step by step evolution of the query
-SELECT 
-  *
-WHERE {
-  ?orderDetail :belongsToOrder ?order ;
-               :hasProduct ?product .
-  ?order       :hasCustomer ?customer .
-}
-
-
-SELECT 
-  *
-WHERE {
-  ?product     ^:hasProduct  ?orderDetail .
-  ?orderDetail :belongsToOrder ?order .
-  ?order       :hasCustomer ?customer .
-}
-
-
-SELECT 
-  *
-WHERE {
-  ?product ^:hasProduct/:belongsToOrder ?order .
-  ?order   :hasCustomer ?customer .
-}
-
-
-SELECT DISTINCT
-  *
-WHERE {
-  ?product ^:hasProduct/:belongsToOrder/:hasCustomer ?customer .
- 
-}
-
-
-# Products frequently bought together in the same order. 
-SELECT 
-  ?productA
-  ?productB
-  (COUNT (*) AS ?productBCount)
-WHERE {
-  ?productA ^:hasProduct/:belongsToOrder/^(^:hasProduct/:belongsToOrder) ?productB ;
-            :productID ?productID .
-  FILTER (?productA != ?productB && ?productA = :product-61) # Filtering on product-61 for testing
-}
-GROUP BY ?productA ?productB
-ORDER BY DESC(?productBCount) ?productA ?productB
-LIMIT 5
-
-
-# Customers who bought a product also bought which other products across all orders?
-SELECT 
-  ?productA
-  ?productB
-  (COUNT (*) AS ?productBCount)
-WHERE {
-  ?productA ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) ?productB ;
-            :productID ?productID .
-  FILTER (?productA != ?productB && ?productA = :product-61) # Filtering on product-61 for testing purposes
-}
-GROUP BY ?productA ?productB
-ORDER BY DESC(?productBCount) ?productA ?productB
-LIMIT 5
-
-# 16a-cowriters-paths.sparql
-# dataset: music
-
-paths
-    start ?artist = :Paul_McCartney
-    end ?cowriter
-via {
-    ?artist ^:writer/:writer ?cowriter
-}
-order by ?cowriter
-
-
-
-# TODO
-# Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
-# Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
-
-
-

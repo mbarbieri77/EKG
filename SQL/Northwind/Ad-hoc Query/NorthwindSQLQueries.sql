@@ -16,7 +16,8 @@ FROM
     Employee
     
 
--- Query 2: Any employees in the USA? (returns true or false)
+-- Returns a boolean indicating whether a query pattern matches or not.
+-- Query 2: Do I have any employees in the USA? 
 IF EXISTS
 (
 SELECT 
@@ -33,7 +34,7 @@ ELSE
 PRINT 'False'
 
 
--- Query 3: Basic select with string match filter
+-- Query 3a: Basic select with specified condition
 SELECT 
     LastName, 
     FirstName, 
@@ -44,18 +45,7 @@ WHERE
     Country = 'USA'
 
 
--- Query 4: The same filter can be applied as follows
-SELECT 
-    LastName, 
-    FirstName, 
-    Title
-FROM 
-    Employee
-WHERE 
-    Country = 'USA'
-
-
--- Query 5: Character string match (Regex)
+-- Query 4: Basic select with pattern search
 SELECT 
     CompanyName,
     ContactName,
@@ -68,7 +58,7 @@ WHERE
     CompanyName LIKE '%REST%'
 
 
--- Query 6: Logical Operators, Join and simple type conversion. 
+-- Query 5: Join and Logical Operators 
 SELECT
     --p.ProductID,
     prd.ProductName,
@@ -89,7 +79,7 @@ WHERE
     AND UnitPrice > 16
 
 
--- Query 7: Data ranges
+-- Query 6: Filtering on Data ranges
 SELECT 
     prd.ProductID,
     prd.ProductName,
@@ -103,7 +93,8 @@ FROM
 WHERE
     prd.UnitPrice BETWEEN 18 AND 20 
 
--- Query 8: Filtering on list of values
+
+-- Query 7: Filtering on list of values
 SELECT
     CompanyName,
     Country
@@ -112,35 +103,40 @@ FROM
 WHERE
     Country IN ('JAPAN', 'Italy') 
 
--- Query 9: Working with Nulls (next 3 examples)
+
+-- Working with Nulls (3 following examples)
+-- Fax was a machine from the 90s able to scan and transmit a document over the phone line
+
+-- Query 8a: Select only suppliers that have a fax number
 SELECT
     CompanyName,
     Fax
 FROM
     Supplier
 WHERE
-    Fax IS NOT NULL  -- only suppliers with fax
+    Fax IS NOT NULL 
 
 
-
+-- Query 8b: Select all suppliers
 SELECT
     CompanyName,
     Fax
 FROM
-    Supplier -- suppliers with fax and without fax
+    Supplier 
 
 
-
+-- Query 8c: Select only suppliers that don't have a fax number
 SELECT
     CompanyName,
     Fax
 FROM
     Supplier
 WHERE
-    Fax IS NULL  -- only suppliers without fax
+    Fax IS NULL  
 
 
--- Query 10: Sorting data
+-- Sorting data
+-- Query 9: Select product details sorted by category name and unit price
 SELECT
     prd.ProductID,
     prd.ProductName,
@@ -155,7 +151,9 @@ ORDER BY
     UnitPrice DESC
 
 
--- Query 11: Eliminating duplicates
+-- Eliminating duplicates
+-- Query 10: Select all countries I buy from
+-- There are more than one supplier per country
 SELECT DISTINCT 
     Country
 FROM 
@@ -164,7 +162,8 @@ ORDER BY
     Country
 
 
--- Query 12: Column alias and string manipulation
+-- Column alias and string concatenation
+-- Query 11: Select employee header
 SELECT
     EmployeeID AS ID,
     CONCAT (SUBSTRING(FirstName,1,1), SUBSTRING(LastName,1,3)) AS Code,
@@ -174,8 +173,9 @@ FROM
     Employee
 
 
--- Query 13: Limiting results - joining product and order.
--- Largest orders of a single product
+-- Limiting results
+-- TOP is a SQL Server extention. For MySql and Oracle syntaxes please check https://www.w3schools.com/sql/sql_top.asp
+-- Query 12: Top 5 largest orders of a single product
 SELECT TOP (5)
     odd.OrderID,
     prd.ProductID,
@@ -188,22 +188,23 @@ ORDER BY
     Quantity DESC
 
 
--- Query 14: Counting
+-- Query 13: Counting
 SELECT
     COUNT(Country) AS countryCount
 FROM 
     Supplier
 
 
--- Query 15: Distinct Count
+-- Distinct Counting
+-- Query 14: Total number of countries I buy from 
 SELECT 
     COUNT(DISTINCT Country) AS countryCount
 FROM 
     Supplier
 
 
--- Query 16: Grouping and Aggregations
--- Top 10 most sold products
+-- Grouping and Aggregating data
+-- Query 15a: Top 10 most sold products
 SELECT TOP 10
     prd.ProductID,
     SUM(odd.Quantity) AS TotalQty
@@ -217,49 +218,88 @@ ORDER BY
     TotalQty DESC
 
 
--- Query 17: Who bought product A also bought which products? 
--- Step by step evolution of the query
-SELECT
+-- Query 15b: Top 5 largest orders shipped to the USA
+SELECT TOP (5)
     ord.OrderID,
-    odd.ProductID,
-    ord.CustomerID
-FROM
-  OrderDetail AS odd
-  INNER JOIN [Order] AS ord
-  ON odd.OrderID = ord.OrderID
+    SUM(odd.UnitPrice * odd.Quantity * (1 - odd.Discount)) AS Total
+FROM 
+  [Order] AS ord
+  INNER JOIN OrderDetail AS odd
+  ON ord.orderid = odd.orderid
+WHERE
+  ord.ShipCountry = 'USA'
+GROUP BY
+  ord.orderid
+ORDER BY 
+  Total DESC
 
 
-SELECT
-    odd.ProductID,
-    ord.OrderID,
-    ord.CustomerID
-FROM
-  OrderDetail AS odd
-  INNER JOIN [Order] AS ord
-  ON odd.OrderID = ord.OrderID
+
+-- Recommendation - Products frequently bought together (Queries 16, 17 and 18)
+
+-- Query 16: Number of times products 2 and 61 where bought by the same customer
+SELECT DISTINCT
+  COUNT(1) AS OrderCount
+FROM 
+  (
+    SELECT prd.ProductID, cst.CustomerID, ord.OrderID
+    FROM Customer AS cst
+    INNER JOIN [Order] AS ord ON cst.CustomerID = ord.CustomerID
+    INNER JOIN OrderDetail AS odd ON ord.OrderID = odd.OrderID
+    INNER JOIN Product AS prd ON prd.ProductID = odd.ProductID
+  ) AS t1 
+INNER JOIN 
+  (
+    SELECT prd.ProductID, cst.CustomerID, ord.OrderID
+    FROM Customer AS cst
+    INNER JOIN [Order] AS ord ON cst.CustomerID = ord.CustomerID
+    INNER JOIN OrderDetail AS odd ON ord.OrderID = odd.OrderID
+    INNER JOIN Product AS prd ON prd.ProductID = odd.ProductID
+  ) AS t2 
+ON 
+  t1.CustomerID = t2.CustomerID -- Same Customer
+WHERE
+    t1.ProductID = 61 AND t2.ProductID = 2 -- Products
+GROUP BY 
+  t1.ProductID,
+  t2.ProductID
+ORDER BY 
+    OrderCount DESC
 
 
-SELECT
-    odd.ProductID,
-    ord.OrderID,
-    ord.CustomerID
-FROM
-  OrderDetail AS odd
-  INNER JOIN [Order] AS ord
-  ON odd.OrderID = ord.OrderID
+-- Query 17: Customers who bought product-61 also bought which products across all orders?
+-- Using PARTITION to replace GROUP BY with same results
+SELECT DISTINCT
+  t1.ProductID AS ProductA, 
+  t2.ProductID AS ProductB,
+  COUNT(t2.ProductID) OVER (PARTITION BY  t2.ProductID) AS ProductBCount
+FROM 
+  (
+    SELECT prd.ProductID, cst.CustomerID, ord.OrderID
+    FROM Customer AS cst
+    INNER JOIN [Order] AS ord ON cst.CustomerID = ord.CustomerID
+    INNER JOIN OrderDetail AS odd ON ord.OrderID = odd.OrderID
+    INNER JOIN Product AS prd ON prd.ProductID = odd.ProductID
+  ) AS t1 
+INNER JOIN 
+  (
+    SELECT prd.ProductID, cst.CustomerID, ord.OrderID
+    FROM Customer AS cst
+    INNER JOIN [Order] AS ord ON cst.CustomerID = ord.CustomerID
+    INNER JOIN OrderDetail AS odd ON ord.OrderID = odd.OrderID
+    INNER JOIN Product AS prd ON prd.ProductID = odd.ProductID
+  ) AS t2 
+ON 
+  t1.CustomerID = t2.CustomerID -- Same Customer
+  AND t1.ProductID <> t2.ProductID
+WHERE
+    t1.ProductID = 61 -- Testing
+ORDER BY 
+    ProductBCount DESC, ProductA, ProductB
 
 
-SELECT DISTINCT 
-    odd.ProductID,
-    ord.CustomerID
-FROM
-  OrderDetail AS odd
-  INNER JOIN [Order] AS ord
-  ON odd.OrderID = ord.OrderID
-
-
--- Query 18: Products frequently bought together in the same order. 
-SELECT TOP 5
+-- Query 18: Customers who bought product-61 also bought which products in the same order?
+SELECT 
   t1.ProductID AS ProductA, 
   t2.ProductID AS ProductB,
   COUNT(t1.OrderID) AS OrderCount
@@ -291,34 +331,54 @@ ORDER BY
   OrderCount DESC, ProductA, ProductB
 
 
--- Query 19: Customers who bought product-61 also bought which products across all orders?
-SELECT DISTINCT TOP 5
-  t1.ProductID AS ProductA, 
-  t2.ProductID AS ProductB,
-  COUNT(t2.ProductID) OVER (PARTITION BY  t2.ProductID) AS ProductBCount
-FROM 
-  (
-    SELECT prd.ProductID, cst.CustomerID, ord.OrderID
-    FROM Customer AS cst
-    INNER JOIN [Order] AS ord ON cst.CustomerID = ord.CustomerID
-    INNER JOIN OrderDetail AS odd ON ord.OrderID = odd.OrderID
-    INNER JOIN Product AS prd ON prd.ProductID = odd.ProductID
-  ) AS t1 
-INNER JOIN 
-  (
-    SELECT prd.ProductID, cst.CustomerID, ord.OrderID
-    FROM Customer AS cst
-    INNER JOIN [Order] AS ord ON cst.CustomerID = ord.CustomerID
-    INNER JOIN OrderDetail AS odd ON ord.OrderID = odd.OrderID
-    INNER JOIN Product AS prd ON prd.ProductID = odd.ProductID
-  ) AS t2 
-ON 
-  t1.CustomerID = t2.CustomerID -- Same Customer
-  AND t1.ProductID <> t2.ProductID
+-- Query 19: Insert a new customer
+INSERT Customer ([CustomerID],[CompanyName],[ContactName],[ContactTitle],[Address],[City]) --,[Region],[PostalCode],[Country],[Phone],[Fax])
+VALUES('AAAAA', 'agnos', 'Jacobus Geluk', 'CTO', 'Abbey Road', 'London')
+SELECT * FROM Customer WHERE CustomerID = 'AAAAA' -- ID is a string...argh...sample databases...
+
+
+-- Query 20: Update existing customer (Queries 20a and 20b in SPARQL)
+UPDATE Customer
+SET Country = 'United Kingdom', PostalCode = 'SW1A 2AA', Address = '10 Downing Road'
+WHERE CustomerID = 'AAAAA'
+
+
+-- Checking number of Customers and Orders
+SELECT COUNT(*) FROM Customer -- 92
+SELECT COUNT(*) FROM [Order]  -- 830
+
+
+-- Query 21: Customers who placed orders
+SELECT DISTINCT
+    cst.CustomerID,
+    cst.CompanyName,
+    cst.ContactName,
+    cst.PostalCode,
+    cst.Address,
+    cst.City
+FROM
+    Customer cst 
+    INNER JOIN [Order] AS ord
+    ON cst.CustomerID = ord.CustomerID
+ORDER BY    
+    cst.City
+
+
+-- Query 22: Customers who never placed an order
+SELECT
+    cst.CustomerID,
+    cst.CompanyName,
+    cst.ContactName,
+    cst.PostalCode,
+    cst.Address,
+    cst.City,
+    ord.OrderID -- Included here for demonstration purposes only (values are all NULLs)
+FROM
+    Customer cst 
+    LEFT JOIN [Order] AS ord
+    ON cst.CustomerID = ord.CustomerID
 WHERE
-    t1.ProductID = 61 
-ORDER BY 
-    ProductBCount DESC, ProductA, ProductB
+    ord.ShipCountry IS NULL
 
 
 
@@ -327,31 +387,29 @@ ORDER BY
 
 
 
+
+-- Queries to be added later ---------------------------------
+-- Query 1x: Custumer's Order Items
+SELECT
+    ord.OrderID,
+    odd.ProductID,
+    ord.CustomerID
+FROM
+  OrderDetail AS odd
+  INNER JOIN [Order] AS ord
+  ON odd.OrderID = ord.OrderID
+WHERE 
+    ord.CustomerID = 'VINET'
 
 
 
   
--- Top 5 largest orders in number of products shipped in the USA
-USE Northwind;
-SELECT TOP (5)
-  ord.OrderID as OrderID, 
-  Count(odd.ProductID) as ProductCount
-FROM 
-  [Order] AS ord
-  INNER JOIN OrderDetail AS odd
-  ON ord.orderid = odd.orderid
-WHERE
-  ord.ShipCountry = 'USA'
-GROUP BY
-  ord.orderid
-ORDER BY 
-  ProductCount DESC, 
-  OrderID 
 
 
 
 
- --the following query returns the two most recent orders (assuming for the sake of this example that orderid represents chronological order)
+
+--the following query returns the two most recent orders 
 --for each customer, generating the output shown below. 
 SELECT 
     cst.CustomerID, 
