@@ -1,0 +1,69 @@
+# Selecting all triples
+SELECT ?subject ?predicate ?object
+WHERE {
+  ?subject ?predicate ?object .
+}
+ORDER BY ?subject
+
+
+# Simplifying the query by using *, short variables names and omit the period and WHERE clause
+SELECT * {?s ?p ?o} ORDER BY ?s
+SELECT * {?s :hasProduct ?o} ORDER BY ?s
+
+
+# Prefix and namespace
+# The next three queries return the same results
+
+# Selecting product details using URI in the triple pattern
+SELECT ?p ?o 
+WHERE { 
+  <http://www.mysparql.com/resource/northwind/product-2> ?p ?o .
+}
+
+# Selecting product details using a Prefix
+PREFIX :<http://www.mysparql.com/resource/northwind/>
+SELECT ?p ?o 
+WHERE { 
+  :product-2 ?p ?o .
+} 
+
+# Selecting product details using a database namespace
+# An empty prefix has been added for the <http://api.stardog.com/> IRI in the database namespace list. 
+SELECT ?p ?o 
+WHERE { 
+  :product-2 ?p ?o .
+} 
+
+# Selecting product names
+SELECT ?s ?productName
+{ 
+    ?s a :product .
+    ?s   :productName ?productName
+}
+
+# Omitting the subject
+SELECT ?s ?productName
+{ 
+	?s a :product ;
+         :productName ?productName .
+}
+
+#Selecting product name and ID
+SELECT 
+  ?s 
+  ?id 
+  ?productName 
+WHERE
+{ 
+  ?s a :product ;
+       :productName ?productName ;
+       :productID ?id .
+} 
+
+# Selecting the unit price of a product using filter
+select ?s ?o 
+{ 
+	?s a :product .
+    ?s   :unitPrice ?o .
+  FILTER (?s=:product-1)
+}

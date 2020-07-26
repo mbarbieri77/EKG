@@ -1,0 +1,72 @@
+# Returning all the outgoing edges of the node 
+# Check the results in Visual view mode in Stardog Studio
+DESCRIBE :orderDetail-10248-72
+DESCRIBE :order-10248
+DESCRIBE :product-1
+
+
+# Total triple count
+SELECT (COUNT(?s) as ?numTriples)
+WHERE {
+    ?s ?p ?o .
+}
+
+
+# Total triple count on a virtual graph
+SELECT (COUNT(?s) as ?numTriples)
+WHERE {
+  GRAPH <virtual://nwvg> 
+  {
+      ?s ?p ?o .
+  }
+}
+
+
+# Selecting all properties of a Class
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :order)
+}
+
+
+# Counting predicates (relationships)
+SELECT ?predicate (COUNT(?predicate) as ?predicateCount)
+WHERE {
+    ?subject ?predicate ?object .
+}
+GROUP BY ?predicate
+ORDER BY DESC(?predicateCount)
+
+
+# Counting class instances
+SELECT ?class (COUNT(?subject) as ?classCount)
+WHERE {
+  ?subject ?predicate ?object .
+  ?subject rdf:type ?class .
+  FILTER (?class != rdfs:Class && ?class != rdf:Property)
+}
+GROUP BY ?class
+ORDER BY DESC(?classCount)
+
+
+# Constructing a graph
+# In Stardog Studio, in the Visual Graph, select "No Group" in nodes and choose IRI for the caption.
+CONSTRUCT {
+    ?domain ?prop ?range
+}
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    bind(if(bound(?oClass), ?oClass, datatype(?object)) as ?range)
+    filter (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range)
+}
