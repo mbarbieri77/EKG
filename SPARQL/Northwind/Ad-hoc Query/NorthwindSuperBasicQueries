@@ -1,3 +1,5 @@
+
+
 # Selecting all triples
 SELECT ?subject ?predicate ?object
 WHERE {
@@ -28,7 +30,7 @@ WHERE {
 } 
 
 # Selecting product details using a database namespace
-# An empty prefix has been added for the <http://api.stardog.com/> IRI in the database namespace list. 
+# An empty prefix has been added for the <http://www.mysparql.com/resource/northwind/> IRI in the database namespace list. 
 SELECT ?p ?o 
 WHERE { 
   :product-2 ?p ?o .
@@ -59,6 +61,7 @@ WHERE
        :productName ?productName ;
        :productID ?id .
 } 
+
 
 # Selecting the unit price of a product using filter
 select ?s ?o 

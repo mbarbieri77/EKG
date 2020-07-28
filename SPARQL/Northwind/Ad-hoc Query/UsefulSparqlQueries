@@ -1,8 +1,5 @@
-# Returning all the outgoing edges of the node 
-# Check the results in Visual view mode in Stardog Studio
-DESCRIBE :orderDetail-10248-72
-DESCRIBE :order-10248
-DESCRIBE :product-1
+
+# Useful SPARQL Queries
 
 
 # Total triple count
@@ -21,8 +18,9 @@ WHERE {
   }
 }
 
+# Useful SPARQL Queries
 
-# Selecting all properties of a Class
+# Selecting all properties of a Class, e.g. order
 SELECT DISTINCT
   ?domain ?prop ?range
 WHERE {
@@ -32,7 +30,7 @@ WHERE {
         ?object a ?oClass .
     }
     BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
-    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :order)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :employee)
 }
 
 
@@ -48,7 +46,6 @@ ORDER BY DESC(?predicateCount)
 # Counting class instances
 SELECT ?class (COUNT(?subject) as ?classCount)
 WHERE {
-  ?subject ?predicate ?object .
   ?subject rdf:type ?class .
   FILTER (?class != rdfs:Class && ?class != rdf:Property)
 }
@@ -70,3 +67,13 @@ WHERE {
     bind(if(bound(?oClass), ?oClass, datatype(?object)) as ?range)
     filter (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range)
 }
+
+
+# Returning all the outgoing edges of the node
+# In case you are using Stardog Studio, use the Visual view mode. 
+DESCRIBE :orderDetail-10248-72
+DESCRIBE :order-10248
+DESCRIBE :product-1
+
+
+# TODO: Add inverse property in OWL to belongsToOrder. 
