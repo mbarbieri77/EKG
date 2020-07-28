@@ -61,7 +61,7 @@ ASK {
 
 
 # Character search pattern (Regex)
-# Query 4: Companies that contain the word "rest" in their names.
+# Query 4: Companies that contain the word "Rest" in their names.
 SELECT
   ?companyName
   ?contactName
@@ -219,7 +219,7 @@ ORDER BY
 
 # Eliminating duplicates
 # Query 11: Select all countries I buy from
-# Note that there are more than one supplier per country
+# Note that there are more than one supplier per country and DISTINCT has been used to eliminate the duplicates.
 SELECT DISTINCT ?country
 WHERE{
   ?s a :supplier ;
@@ -275,7 +275,7 @@ LIMIT 10
 
 
 # Counting
-# Query 14: Number of supplier. 
+# Query 14: Number of supplier
 SELECT (COUNT(1) AS ?supplierCount)
 WHERE{
   ?s a :supplier .
@@ -328,7 +328,7 @@ ORDER BY
 LIMIT 5
 
 
-# Query 18: Orders shipped to the USA with amount over 10K
+# Query 18: Orders over 10K shipped to the USA 
 SELECT
   ?orderID
   (ROUND(SUM(?unitPrice * ?quantity * (1 - ?discount))) AS ?total)
@@ -349,7 +349,7 @@ ORDER BY
   DESC(?total)
 
 
-# Query 19: Top 3 Supplier Representative by number of products sold
+# Query 19: Top 5 Supplier Representative by number of products sold
 SELECT 
   ?supplierContactName 
   (COUNT(?product) as ?productCount)
@@ -369,6 +369,7 @@ LIMIT 5
 
 # Recommendation - Products frequently bought together (next 3 queries)
 
+
 # Query 20: Customers who bought product-61 also bought which products in the same order?
 SELECT 
   ?productA
@@ -381,7 +382,6 @@ WHERE {
 }
 GROUP BY ?productA ?productB 
 ORDER BY DESC(?productBCount) ?productA ?productB # Most frequent at the top
-LIMIT 5
 
 
 # Query 21: Customers who bought product-61 also bought which products across all orders?
@@ -396,7 +396,6 @@ WHERE {
 }
 GROUP BY ?productA ?productB
 ORDER BY DESC(?productBCount) ?productA ?productB
-LIMIT 5
 
 
 # Query 22: Number of times products 2 and 61 where bought by the same customer
@@ -404,7 +403,7 @@ SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
 
-# The folloiwng are the 6 steps taken to develop Query 19.
+# The folloiwng are the 6 steps taken to develop the query above.
 # For more details on Property Path, please refer to https://www.stardog.com/tutorials/sparql/#toc7.
 
 # Step 1: Triple pattern matching order, orderDetail, product and customer nodes that are directly connected. 
@@ -435,7 +434,7 @@ WHERE {
   FILTER (?product = :product-61)
 }
 
-# Step 4: And then again, to omit the binding of the ?order varaible.
+# Step 4: Use a sequence path to omit the binding of the ?order varaible.
 # All customers that bought product-61
 SELECT DISTINCT * # eliminates duplicates in case the same customer bouth a product more than once
 WHERE {
@@ -451,7 +450,7 @@ WHERE {
 }
 ORDER BY ?product
 
-# Step 6: And finally, omit the binding of the ?customer varaible and add the path back to product.  
+# Step 6: And finally, omit the binding of the ?customer varaible and invert the full path back to product.  
 SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
@@ -502,7 +501,8 @@ ORDER BY
 
 
 # Subqueries
-# Query 25: Select the two most recent orders of each customer
+# Query 25: Select the two most recent orders of each customer  
+# FIX FIX FIX FIX THIS!!!!!!!!!!!!
 SELECT DISTINCT 
   # from outer query
   ?customerID 
@@ -521,7 +521,7 @@ WHERE {
         ?orderID
         ?orderDate
     WHERE {
-      ?order :hasCustomer ?customer ; # pass the ?order in for each order of the outer query
+      ?order :hasCustomer ?customer ; 
              :orderID ?orderID ;
              :orderDate ?orderDate .
     }
@@ -531,7 +531,9 @@ WHERE {
     }
   }
 ORDER BY
-  ?customerID ?city DESC(?orderDate)
+  ?customerID 
+  ?city 
+  DESC(?orderDate)
 
 
 ###### TODO ######
@@ -591,11 +593,12 @@ WHERE {
 
 
 # Running Totals
-# Query 25: 
+# Query 28: 
 
 
 
 # Inserting and updating data
+
 
 # Query xx: Insert a new customer
 INSERT DATA {

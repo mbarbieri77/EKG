@@ -1,4 +1,8 @@
 
+
+-- Northwind SQL Queries
+
+
 -- Basic select with specified columns
 -- Query 1: Employee titles 
 SELECT
@@ -23,7 +27,7 @@ WHERE
     Country = 'USA'
 
 
--- Query 3: Do I have any employees in France?   
+-- Query 3: Do I have any employees in the UK?   
 IF EXISTS
 (
     SELECT 1
@@ -38,7 +42,8 @@ PRINT 'FALSE'
 
 
 -- Character search pattern (Regex)
--- Query 4: Companies that contain the word "rest" in their names
+-- Query 4: Companies that contain the word "Rest" in their names
+-- Note that Northwind sample database has been set up with "Latin1_General_CI_AS" collation (Case Insensitive, Accent Sensitive).
 SELECT 
     CompanyName,
     ContactName,
@@ -49,7 +54,7 @@ FROM
     Customer
 WHERE 
     CompanyName LIKE '%REST%'
-
+ 
 
 -- Joins
 -- Joining product, category and supplier.
@@ -164,7 +169,7 @@ ORDER BY
 
 -- Eliminating duplicates
 -- Query 11: Select all countries I buy from
--- Note that there are more than one supplier per country
+-- Note that there are more than one supplier per country and DISTINCT has been used to eliminate the duplicates.
 SELECT DISTINCT 
     Country
 FROM 
@@ -205,7 +210,7 @@ ORDER BY
 
 
 -- Counting
--- Query 14: Number of supplier. 
+-- Query 14: Number of supplier
 SELECT
     COUNT(1) AS supplierCount
 FROM 
@@ -213,7 +218,7 @@ FROM
 
 
 -- Distinct Counting
--- Query 15: Number of countries I buy from.
+-- Query 15: Number of countries I buy from
 SELECT 
     COUNT(DISTINCT Country) AS countryCount
 FROM 
@@ -251,7 +256,7 @@ ORDER BY
     Total DESC
 
 
--- Query 18: Orders shipped to the USA with amount over 10K
+-- Query 18: Orders over 10K shipped to the USA
 SELECT 
     ord.OrderID,
     ROUND(SUM(odd.UnitPrice * odd.Quantity * (1 - odd.Discount)), 0) AS Total
@@ -270,9 +275,10 @@ ORDER BY
 
 
 -- Query 19: Top 5 Supplier Representative by number of products sold
+-- Note that this query returns two or more rows that tie for last place in the limited results set.
 SELECT 
     TOP 5 
-    WITH TIES -- Returns two or more rows that tie for last place in the limited results set.
+    WITH TIES -- returns rows that tie for last place 
     spl.ContactName,
     COUNT(prd.ProductID) as ProductCount
 FROM
@@ -290,8 +296,9 @@ ORDER BY
 
 -- Recommendation - Products frequently bought together (next 3 queries)
 
+
 -- Query 20: Customers who bought product-61 also bought which products in the same order?
-SELECT TOP 5
+SELECT 
   t1.ProductID AS ProductA, 
   t2.ProductID AS ProductB,
   COUNT(t1.OrderID) AS OrderCount
@@ -327,7 +334,7 @@ ORDER BY
   
 -- Query 21: Customers who bought product-61 also bought which products across all orders?
 -- Using PARTITION to replace GROUP BY with same results
-SELECT DISTINCT TOP (5) 
+SELECT DISTINCT 
   t1.ProductID AS ProductA, 
   t2.ProductID AS ProductB,
   COUNT(t2.ProductID) OVER (PARTITION BY  t2.ProductID) AS ProductBCount
@@ -388,7 +395,7 @@ ORDER BY
     OrderCount DESC
 
 
--- Query 23: Customers who placed at least one order: 89 Customers
+-- Query 23: Customers who placed at least one order
 SELECT DISTINCT
     cst.CustomerID,
     cst.CompanyName,
@@ -446,10 +453,12 @@ CROSS APPLY -- INNER JOIN
         OrderDate DESC
 ) AS cpp
 ORDER BY 
-    CustomerID 
+    cst.CustomerID, 
+    cst.City,
+    cpp.OrderDate DESC
 
 
--- Query 26: Change the below to return the top 3 most expensive product in each product category
+-- Query 26: Top 3 most expensive product in each product category
 
 
 -- Union
@@ -476,10 +485,7 @@ ORDER BY
 
 
 -- Running Totals
--- Query 31: 
-
-
-
+-- Query 28: 
 
 
 
