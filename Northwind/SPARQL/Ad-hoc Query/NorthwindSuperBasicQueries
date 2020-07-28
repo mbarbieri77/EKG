@@ -1,5 +1,8 @@
 
 
+# Northwind Basic Queries
+
+
 # Selecting all triples
 SELECT ?subject ?predicate ?object
 WHERE {
@@ -16,11 +19,13 @@ SELECT * {?s :hasProduct ?o} ORDER BY ?s
 # Prefix and namespace
 # The next three queries return the same results
 
+
 # Selecting product details using URI in the triple pattern
 SELECT ?p ?o 
 WHERE { 
   <http://www.mysparql.com/resource/northwind/product-2> ?p ?o .
 }
+
 
 # Selecting product details using a Prefix
 PREFIX :<http://www.mysparql.com/resource/northwind/>
@@ -29,12 +34,14 @@ WHERE {
   :product-2 ?p ?o .
 } 
 
+
 # Selecting product details using a database namespace
 # An empty prefix has been added for the <http://www.mysparql.com/resource/northwind/> IRI in the database namespace list. 
 SELECT ?p ?o 
 WHERE { 
   :product-2 ?p ?o .
 } 
+
 
 # Selecting product names
 SELECT ?s ?productName
@@ -43,6 +50,7 @@ SELECT ?s ?productName
     ?s   :productName ?productName
 }
 
+
 # Omitting the subject
 SELECT ?s ?productName
 { 
@@ -50,16 +58,17 @@ SELECT ?s ?productName
          :productName ?productName .
 }
 
+
 #Selecting product name and ID
 SELECT 
   ?s 
-  ?id 
+  ?ID 
   ?productName 
 WHERE
 { 
   ?s a :product ;
        :productName ?productName ;
-       :productID ?id .
+       :productID ?ID .
 } 
 
 

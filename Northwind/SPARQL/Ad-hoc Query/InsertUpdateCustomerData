@@ -1,0 +1,153 @@
+
+
+# Insert and Update Data
+
+
+# Looking at triples of an existing customer for reference
+# Class
+<http://www.mysparql.com/resource/northwind/customer> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2000/01/rdf-schema#Class> .
+# Instance
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.mysparql.com/resource/northwind/customer> .
+# Properties
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/fax> "030-0076545" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/address> "Obere Str. 57" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/phone> "030-0074321" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.w3.org/2000/01/rdf-schema#label> "customer-ALFKI" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/city> "Berlin" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/contactTitle> "Sales Representative" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/companyName> "Alfreds Futterkiste" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/country> "Germany" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/postalCode> "12209" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/customerID> "ALFKI" .
+<http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/contactName> "Maria Anders" .
+# Linking customer to an order 
+<http://www.mysparql.com/resource/northwind/order-10643> <http://www.mysparql.com/resource/northwind/hasCustomer> <http://www.mysparql.com/resource/northwind/customer-ALFKI> .
+# The following will not be covered:
+# order Properties
+# Linking an order to orderDetail
+# orderDetail Properties
+
+
+# Insert a new customer
+INSERT DATA {
+  :customer-AAAAA a :customer ;
+  rdfs:label "customer-AAAAA" ;
+  :customerID "AAAAA" ;
+  :companyName "agnos" ;
+  :contactName "Jacobus Geluk" ;
+  :contactTitle "CTO" ;
+  :address "Abbey Road" ;
+  :city "London" .
+}
+
+
+# Checking if new customer has been inserted successfully
+DESCRIBE :customer-AAAAA     
+
+# Or by selecting the data that has been just inserted
+SELECT
+  *
+WHERE {
+  ?s a :customer ;
+       rdfs:label ?companyLabel ;
+       :companyName ?companyName ;
+       :contactName ?contactName ;
+       :contactTitle ?contactTitle;
+       :address ?address ;
+       :city ?city .
+       # need to specify optional to match patterns for nodes that may not exist. 
+       OPTIONAL {?s :phone ?phone}
+       OPTIONAL {?s :fax ?fax}
+       OPTIONAL {?s :region ?region}
+       OPTIONAL {?s :country ?country}
+       OPTIONAL {?s :postalCode ?postalCode}   
+  #FILTER (?s = :customer-AAAAA)    
+}
+ORDER BY ?s 
+#LIMIT 1 # Could be used if there was an incremental ID
+
+
+# Update existing customer (add new triples)
+# Spelling mistake ("portalCode" instead of "postalCode") is intentional, which will be fixed in the next steps.
+INSERT DATA {
+  :customer-AAAAA a :customer ;
+  :country "UK" ;
+  :portalCode "SW1A 2AA" . 
+}
+
+
+# Checking the property to be deleted.
+CONSTRUCT {
+  ?s :portalCode ?portalCode
+}
+WHERE {
+  ?s a :customer ;
+       rdfs:label "customer-AAAAA" ;
+       :portalCode ?portalCode        
+}
+
+
+# You can use the result of the construct above or just do a straight delete when you know the triple to be excluded. 
+# It will not return an error if a triple doesn't exist.
+DELETE DATA
+{
+  :customer-AAAAA :portalCode "SW1A 2AA" .
+}
+
+
+# Checking if the triple went away. 
+SELECT DISTINCT
+  ?domain ?prop ?range
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :customer)
+}
+
+
+# Insert the correct data
+INSERT DATA {
+  :customer-AAAAA a :customer ;
+  :postalCode "SW1A 2AA" . 
+}
+
+
+# Checking how triple for new address will look like.
+CONSTRUCT {
+:customer-AAAAA :address ?newAddress .
+:customer-AAAAA :OldAddress ?OldAddress .
+:customer-AAAAA :country "UK" . # You can also hard code triples in the construct. 
+}
+WHERE {
+   :customer-AAAAA a :customer ;
+     :address ?OldAddress ;
+     BIND("10 Downing Road" AS ?newAddress) .
+}
+
+
+# Update Address of customer-AAAAA
+# Update existing customer address
+DELETE {
+:customer-AAAAA :address ?oldAddress 
+}
+INSERT {
+  :customer-AAAAA :address ?newAddress
+}
+WHERE {
+   :customer-AAAAA a :customer ;
+     :address ?oldAddress ;
+     BIND("10 Downing Road" AS ?newAddress) .
+}
+
+
+# Checking number of Customers and Orders
+SELECT (COUNT(1) AS ?count) WHERE {?custormer a :customer} # 92
+SELECT (COUNT(1) AS ?count) WHERE {?order a :order } # 830
+
+
+# TODO: Delete all property values of an instance
+

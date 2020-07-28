@@ -620,7 +620,7 @@ DESCRIBE :customer-AAAAA
 # Step 1: Insert new triple for for the properties not included in Query 23
 INSERT DATA {
   :customer-AAAAA a :customer ;
-  :country "United Kingdom" ;
+  :country "UK" ;
   :postalCode "SW1A 2AA" . 
 }
 
@@ -669,23 +669,6 @@ WHERE {
 # https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#idp899488
 
 
-###################################################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# TODO
 # Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
 # Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
 

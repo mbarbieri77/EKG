@@ -1,4 +1,5 @@
 
+
 # Useful SPARQL Queries
 
 
@@ -30,7 +31,7 @@ WHERE {
         ?object a ?oClass .
     }
     BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
-    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :employee)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :order)
 }
 
 
@@ -75,5 +76,3 @@ DESCRIBE :orderDetail-10248-72
 DESCRIBE :order-10248
 DESCRIBE :product-1
 
-
-# TODO: Add inverse property in OWL to belongsToOrder. 
