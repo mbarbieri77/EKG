@@ -79,3 +79,12 @@ select ?s ?o
     ?s   :unitPrice ?o .
   FILTER (?s=:product-1)
 }
+
+
+# Subqueries
+SELECT ?x ?y WHERE {
+  VALUES ?x { 1 2 3 4 }
+  {
+    SELECT ?y WHERE { VALUES ?y { 5 6 7 8 }  }
+  } 
+} 

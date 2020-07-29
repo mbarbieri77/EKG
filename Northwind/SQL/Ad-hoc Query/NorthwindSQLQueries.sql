@@ -337,7 +337,7 @@ ORDER BY
 SELECT DISTINCT 
   t1.ProductID AS ProductA, 
   t2.ProductID AS ProductB,
-  COUNT(t2.ProductID) OVER (PARTITION BY  t2.ProductID) AS ProductBCount
+  COUNT(t2.ProductID) OVER (PARTITION BY t2.ProductID) AS ProductBCount
 FROM 
   (
     SELECT prd.ProductID, cst.CustomerID, ord.OrderID
@@ -428,8 +428,32 @@ WHERE
     ord.ShipCountry IS NULL
 
 
+-- Union
+-- Query 25: Contact details of suppliers, customers and employees for Xmas cards
+SELECT 
+    ContactName, 
+    Address, City, PostalCode, Country, Type = 'Supplier'
+FROM
+    Supplier
+UNION
+SELECT 
+    ContactName, 
+    Address, City, PostalCode, Country, Type = 'Customer'
+FROM
+    Customer
+UNION
+SELECT 
+   CONCAT(FirstName, ' ', LastName) AS ContactName, 
+   Address, City, PostalCode, Country, Type = 'Employee'
+FROM
+    Employee
+ORDER BY  
+    ContactName
+
+
 -- Subqueries
--- Query 25: Select the two most recent orders of each customer
+
+-- Query 26: Select the two most recent orders of each customer
 SELECT 
     cst.CustomerID, 
     cst.City,
@@ -460,28 +484,6 @@ ORDER BY
 
 -- Query 26: Top 3 most expensive product in each product category
 
-
--- Union
--- Query 27: Contact details of suppliers, customers and employees for Xmas cards
-SELECT 
-    ContactName, 
-    Address, City, PostalCode, Country, Type = 'Supplier'
-FROM
-    Supplier
-UNION
-SELECT 
-    ContactName, 
-    Address, City, PostalCode, Country, Type = 'Customer'
-FROM
-    Customer
-UNION
-SELECT 
-   CONCAT(FirstName, ' ', LastName) AS ContactName, 
-   Address, City, PostalCode, Country, Type = 'Employee'
-FROM
-    Employee
-ORDER BY  
-    ContactName
 
 
 -- Running Totals

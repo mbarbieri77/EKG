@@ -500,64 +500,8 @@ ORDER BY
   ?customer
 
 
-# Subqueries
-# Query 25: Select the two most recent orders of each customer  
-# FIX FIX FIX FIX THIS!!!!!!!!!!!!
-SELECT DISTINCT 
-  # from outer query
-  ?customerID 
-  ?city
-  # from inner query
-  ?orderID
-  ?orderDate
-WHERE {
-  # outer query
-  ?customer a :customer ;
-              :customerID ?customerID ;
-              :city ?city ;
-              ^:hasCustomer ?order .
-  { # inner query
-    SELECT
-        ?orderID
-        ?orderDate
-    WHERE {
-      ?order :hasCustomer ?customer ; 
-             :orderID ?orderID ;
-             :orderDate ?orderDate .
-    }
-      ORDER BY
-        DESC(?orderDate)
-      LIMIT 2
-    }
-  }
-ORDER BY
-  ?customerID 
-  ?city 
-  DESC(?orderDate)
-
-
-###### TODO ######
-# Query 26: Change the below to return the top 3 most expensive product in each product category
-SELECT
-  ?productID
-  ?productName
-  ?categoryName
-  ?unitPrice
-WHERE {
-  ?s a :product ;
-       :productID ?productID ;
-       :productName ?productName ;
-       :unitPrice ?unitPrice ;
-       :hasCategory ?category .
-  ?category :name ?categoryName . 
-}
-ORDER BY 
-  ASC(?categoryName)
-  DESC(?unitPrice)
-
-
 # Union
-# Query 27: Contact details of suppliers, customers and employees for Xmas cards
+# Query 25: Contact details of suppliers, customers and employees for Xmas cards
 SELECT
   ?contactName ?address ?city ?postalCode ?country
 WHERE {
@@ -591,6 +535,62 @@ WHERE {
   }
 }
 
+
+# Subqueries
+
+# Query 26: Select the two most recent orders of each customer  
+# FIX FIX FIX FIX THIS!!!!!!!!!!!!
+# https://github.com/w3c/sparql-12/issues/100
+SELECT DISTINCT 
+  # from outer query
+  ?customerID 
+  ?city
+  # from inner query
+  ?orderID
+  ?orderDate
+WHERE {
+  # outer query
+  ?customer a :customer ;
+              :customerID ?customerID ;
+              :city ?city ;
+              ^:hasCustomer ?order .
+  { # inner query
+    SELECT
+        ?orderID
+        ?orderDate
+    WHERE {
+      ?order :orderID ?orderID ;
+             :orderDate ?orderDate .
+    }
+      ORDER BY
+        DESC(?orderDate)
+      LIMIT 2
+    }
+  }
+ORDER BY
+  ?customerID 
+  ?city 
+  DESC(?orderDate)
+
+
+# Query 27: Top 3 most expensive product in each product category
+# TODO!!!!!!
+SELECT
+  ?productID
+  ?productName
+  ?categoryName
+  ?unitPrice
+WHERE {
+  ?s a :product ;
+       :productID ?productID ;
+       :productName ?productName ;
+       :unitPrice ?unitPrice ;
+       :hasCategory ?category .
+  ?category :name ?categoryName . 
+}
+ORDER BY 
+  ASC(?categoryName)
+  DESC(?unitPrice)
 
 # Running Totals
 # Query 28: 
