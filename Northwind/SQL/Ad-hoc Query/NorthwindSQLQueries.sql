@@ -4,6 +4,8 @@
 
 
 -- Basic select with specified columns
+
+
 -- Query: Employee titles 
 SELECT
     EmployeeID,
@@ -15,6 +17,8 @@ FROM
     
 
 -- Filtering Data
+
+
 -- Query: List of Employees in the USA
 SELECT 
     EmployeeID,
@@ -225,6 +229,8 @@ ORDER BY
 
 
 -- Column alias and string concatenation
+
+
 -- Query: Create employee code
 SELECT
     CONCAT (FirstName, ' ', LastName) AS FullName,
@@ -348,7 +354,7 @@ ORDER BY
     ProductCount DESC
   
 
--- Recommendation - Products frequently bought together
+-- Recommendation
 
 
 -- Query: Customers who bought product-61 also bought which products in the same order?
