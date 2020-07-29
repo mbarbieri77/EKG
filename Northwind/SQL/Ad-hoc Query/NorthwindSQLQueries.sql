@@ -4,7 +4,7 @@
 
 
 -- Basic select with specified columns
--- Query 1: Employee titles 
+-- Query: Employee titles 
 SELECT
     EmployeeID,
     LastName,
@@ -15,7 +15,7 @@ FROM
     
 
 -- Filtering Data
--- Query 2: List of Employees in the USA
+-- Query: List of Employees in the USA
 SELECT 
     EmployeeID,
     LastName, 
@@ -27,7 +27,7 @@ WHERE
     Country = 'USA'
 
 
--- Query 3: Do I have any employees in the UK?   
+-- Query: Do I have any employees in the UK?   
 IF EXISTS
 (
     SELECT 1
@@ -41,8 +41,8 @@ ELSE
 PRINT 'FALSE'
 
 
--- Character search pattern (Regex)
--- Query 4: Companies that contain the word "Rest" in their names
+-- Using string comparison
+-- Query: Companies that contain the word "Rest" in their names
 -- Note that Northwind sample database has been set up with "Latin1_General_CI_AS" collation (Case Insensitive, Accent Sensitive).
 SELECT 
     CompanyName,
@@ -57,8 +57,10 @@ WHERE
  
 
 -- Joins
+
+
+-- Query: Selecting details of products supplied by companies located in the USA
 -- Joining product, category and supplier.
--- Query 5: Selecting details of products supplied by companies located in the USA
 SELECT 
     prd.productID,
     prd.productName, 
@@ -76,8 +78,45 @@ WHERE
     spl.Country = 'USA'
 
 
--- Logical Operators
--- Query 6: Search specific products
+-- Query: Customers who placed at least one order
+SELECT DISTINCT
+    cst.CustomerID,
+    cst.CompanyName,
+    cst.ContactName,
+    cst.PostalCode,
+    cst.Address,
+    cst.City
+FROM
+    Customer cst 
+    INNER JOIN [Order] AS ord
+    ON cst.CustomerID = ord.CustomerID
+ORDER BY    
+    cst.City
+
+
+-- Query: Customers who never placed an order
+SELECT
+    cst.CustomerID,
+    cst.CompanyName,
+    cst.ContactName,
+    cst.PostalCode,
+    cst.Address,
+    cst.City,
+    ord.OrderID -- Included here for demonstration purposes only (values are all NULLs)
+FROM
+    Customer cst 
+    LEFT JOIN [Order] AS ord
+    ON cst.CustomerID = ord.CustomerID
+WHERE
+    ord.ShipCountry IS NULL
+
+
+-- Using Logical Operators
+
+
+-- Query: Search specific products
+-- All products with product names that begin with the letter T or have a product 
+-- identification number of 46 and that have a price greater than $16.00.
 SELECT
     prd.ProductName,
     prd.UnitPrice,
@@ -89,15 +128,15 @@ FROM
     INNER JOIN Supplier as spl 
     ON prd.SupplierID = spl.SupplierID
 WHERE
-    (
-      ProductName Like 'T%'
-      OR ProductID = 46
-    )
-    AND UnitPrice > 16
+    (productname LIKE 'T%') OR 
+	(productid = 46 AND unitprice > 16.00) 
 
 
 -- Filtering on Data ranges
--- Query 7: Products in specified price range
+
+
+-- Query: Products in specified price range
+-- Retrieves products with a unit price between $10.00 and $20.00. Notice that the result set includes the end values.
 SELECT 
     prd.ProductName,
     spl.CompanyName,
@@ -107,11 +146,13 @@ FROM
     INNER JOIN Supplier as spl 
     ON prd.SupplierID = spl.SupplierID
 WHERE
-    prd.UnitPrice BETWEEN 18 AND 20 
+    prd.UnitPrice BETWEEN 18 AND 20 -- Inclusive
 
 
 -- Filtering on list of values
--- Query 8: Suppliers in Japan and Italy
+
+
+-- Query: List of suppliers that are located in Japan or Italy
 SELECT
     CompanyName,
     Country
@@ -121,10 +162,11 @@ WHERE
     Country IN ('JAPAN', 'Italy') 
 
 
--- Working with Nulls (next 3 examples)
--- Fax was a machine from the 90s able to scan and transmit a document over the phone line.
+-- Working with Nulls
 
--- Query 9a: Select only suppliers that have a fax number
+
+-- Query: Select only suppliers that have a fax number
+-- Note: Fax was a machine from the 90s able to scan and transmit a document over the phone line.
 SELECT
     CompanyName,
     Fax
@@ -134,7 +176,7 @@ WHERE
     Fax IS NOT NULL 
 
 
--- Query 9b: Select all suppliers
+-- Query: Select all suppliers
 SELECT
     CompanyName,
     Fax
@@ -142,7 +184,7 @@ FROM
     Supplier 
 
 
--- Query 9c: Select only suppliers that don't have a fax number
+-- Query: Select only suppliers that don't have a fax number
 SELECT
     CompanyName,
     Fax
@@ -153,7 +195,9 @@ WHERE
 
 
 -- Sorting data
--- Query 10: Sort products in each product category by unit price descending
+
+
+-- Query: Sort products in each product category by unit price descending
 SELECT
     prd.ProductName,
     ctg.CategoryName,
@@ -168,7 +212,9 @@ ORDER BY
 
 
 -- Eliminating duplicates
--- Query 11: Select all countries I buy from
+
+
+-- Query: Select all countries I buy from
 -- Note that there are more than one supplier per country and DISTINCT has been used to eliminate the duplicates.
 SELECT DISTINCT 
     Country
@@ -179,7 +225,7 @@ ORDER BY
 
 
 -- Column alias and string concatenation
--- Query 12: Create employee code
+-- Query: Create employee code
 SELECT
     CONCAT (FirstName, ' ', LastName) AS FullName,
     CONCAT (SUBSTRING(FirstName,1,1), SUBSTRING(LastName,1,3), '_', Extension, '_', ISNULL(Region, CONCAT('INT-',country))) AS Code
@@ -190,8 +236,10 @@ ORDER BY
 
 
 -- Limiting results
+
+
 -- TOP is a SQL Server extention. For MySql and Oracle syntaxes please check https://www.w3schools.com/sql/sql_top.asp
--- Query 13: Top 10 largest amount of a product sold in a single order
+-- Query: Top 10 largest quantity of a product sold in a single order
 SELECT TOP 10
     prd.ProductName, 
     ord.OrderID,
@@ -210,7 +258,9 @@ ORDER BY
 
 
 -- Counting
--- Query 14: Number of supplier
+
+
+-- Query: Number of supplier
 SELECT
     COUNT(1) AS supplierCount
 FROM 
@@ -218,7 +268,9 @@ FROM
 
 
 -- Distinct Counting
--- Query 15: Number of countries I buy from
+
+
+-- Query: Number of countries I buy from
 SELECT 
     COUNT(DISTINCT Country) AS countryCount
 FROM 
@@ -226,7 +278,9 @@ FROM
 
 
 -- Grouping and Aggregating data
--- Query 16: Top 5 most sold products
+
+
+-- Query: Top 5 most sold products
 SELECT TOP 5
     prd.ProductID,
     SUM(odd.Quantity) AS TotalQty
@@ -240,7 +294,7 @@ ORDER BY
     TotalQty DESC
 
 
--- Query 17: Top 5 largest orders shipped to the USA
+-- Query: Top 5 largest orders shipped to the USA
 SELECT TOP 5
     ord.OrderID,
     ROUND(SUM(odd.UnitPrice * odd.Quantity * (1 - odd.Discount)), 0) AS Total
@@ -256,7 +310,7 @@ ORDER BY
     Total DESC
 
 
--- Query 18: Orders over 10K shipped to the USA
+-- Query: Orders over 10K shipped to the USA
 SELECT 
     ord.OrderID,
     ROUND(SUM(odd.UnitPrice * odd.Quantity * (1 - odd.Discount)), 0) AS Total
@@ -274,7 +328,7 @@ ORDER BY
   Total DESC
 
 
--- Query 19: Top 5 Supplier Representative by number of products sold
+-- Query: Top 5 Supplier Representative by number of products sold
 -- Note that this query returns two or more rows that tie for last place in the limited results set.
 SELECT 
     TOP 5 
@@ -294,10 +348,10 @@ ORDER BY
     ProductCount DESC
   
 
--- Recommendation - Products frequently bought together (next 3 queries)
+-- Recommendation - Products frequently bought together
 
 
--- Query 20: Customers who bought product-61 also bought which products in the same order?
+-- Query: Customers who bought product-61 also bought which products in the same order?
 SELECT 
   t1.ProductID AS ProductA, 
   t2.ProductID AS ProductB,
@@ -331,8 +385,8 @@ ORDER BY
   ProductA, 
   ProductB 
 
-  
--- Query 21: Customers who bought product-61 also bought which products across all orders?
+
+-- Query: Customers who bought product-61 also bought which products across all orders?
 -- Using PARTITION to replace GROUP BY with same results
 SELECT DISTINCT 
   t1.ProductID AS ProductA, 
@@ -365,7 +419,7 @@ ORDER BY
     ProductB
 
 
--- Query 22: Number of times products 2 and 61 where bought by the same customer
+-- Query: Number of times products 2 and 61 where bought by the same customer
 SELECT DISTINCT
   COUNT(1) AS OrderCount
 FROM 
@@ -395,41 +449,10 @@ ORDER BY
     OrderCount DESC
 
 
--- Query 23: Customers who placed at least one order
-SELECT DISTINCT
-    cst.CustomerID,
-    cst.CompanyName,
-    cst.ContactName,
-    cst.PostalCode,
-    cst.Address,
-    cst.City
-FROM
-    Customer cst 
-    INNER JOIN [Order] AS ord
-    ON cst.CustomerID = ord.CustomerID
-ORDER BY    
-    cst.City
+-- Combining multiple result sets using Union
 
 
--- Query 24: Customers who never placed an order
-SELECT
-    cst.CustomerID,
-    cst.CompanyName,
-    cst.ContactName,
-    cst.PostalCode,
-    cst.Address,
-    cst.City,
-    ord.OrderID -- Included here for demonstration purposes only (values are all NULLs)
-FROM
-    Customer cst 
-    LEFT JOIN [Order] AS ord
-    ON cst.CustomerID = ord.CustomerID
-WHERE
-    ord.ShipCountry IS NULL
-
-
--- Union
--- Query 25: Contact details of suppliers, customers and employees for Xmas cards
+-- Query: Contact details of suppliers, customers and employees for Xmas cards
 SELECT 
     ContactName, 
     Address, City, PostalCode, Country, Type = 'Supplier'
@@ -453,7 +476,52 @@ ORDER BY
 
 -- Subqueries
 
--- Query 26: Select the two most recent orders of each customer
+
+-- Query: Select all products that belong to the Seafood category
+SELECT
+    prd.ProductName, 
+    prd.UnitPrice, 
+    prd.UnitsInStock
+FROM 
+    Product prd
+WHERE 
+    prd.CategoryID IN (
+        SELECT ctg.CategoryID FROM Category ctg WHERE ctg.CategoryName = 'Seafood')
+ORDER BY
+    prd.ProductName
+
+
+-- Query: Select all products that belong to the Seafood category
+-- This query replaces the previous one by using the more efficient EXISTS
+SELECT
+    prd.ProductName, 
+    prd.UnitPrice, 
+    prd.UnitsInStock
+FROM 
+    Product prd
+WHERE 
+    EXISTS (
+        SELECT 1 FROM Category ctg WHERE prd.CategoryID = ctg.CategoryID AND ctg.CategoryName = 'Seafood')
+ORDER BY
+    prd.ProductName
+
+
+-- Query: Select all products that belong to the Seafood category
+-- Re-writting the previous query using JOIN
+SELECT
+    prd.ProductName, 
+    prd.UnitPrice, 
+    prd.UnitsInStock
+FROM 
+    Product prd
+    INNER JOIN Category ctg 
+    ON prd.CategoryID = ctg.CategoryID 
+    WHERE ctg.CategoryName = 'Seafood'
+ORDER BY
+    prd.ProductName
+
+
+-- Query: Select the 3 most recent orders of each customer
 SELECT 
     cst.CustomerID, 
     cst.City,
@@ -462,19 +530,16 @@ SELECT
 FROM 
     Customer AS cst
 -- For each customer record, go and get the two most recent orders.
--- An INNER JOIN could've been used, however, CROSS APPLY is more efficient when combined with SELECT TOP.
-CROSS APPLY -- INNER JOIN
+CROSS APPLY -- An INNER JOIN could've been used, however, CROSS APPLY is more efficient when combined with SELECT TOP.
 (
-    SELECT TOP(2) 
-        ord.OrderID, 
-        ord.OrderDate, 
-        cst.CustomerID
+    SELECT TOP 3 
+        ord.OrderID, ord.OrderDate, cst.CustomerID
     FROM 
         [Order] AS ord
     WHERE 
         ord.customerid = cst.customerid -- reference to the outer query (correlated subquery)
     ORDER BY 
-        OrderDate DESC
+        ord.OrderDate DESC
 ) AS cpp
 ORDER BY 
     cst.CustomerID, 
@@ -482,51 +547,82 @@ ORDER BY
     cpp.OrderDate DESC
 
 
--- Query 26: Top 3 most expensive product in each product category
+
+-- Windowed Functions
 
 
+-- Calculating row numbering and ranking, quantiles, moving averages, and running totals.
+-- Reference: https://docs.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-2017
 
--- Running Totals
--- Query 28: 
 
+-- Query: Select the 3 most recent orders of each customer
+-- This query replaces the previous one by using the more efficient Windowed Function. 
+SELECT 
+    ptt.*
+FROM
+(
+    SELECT
+    cst.CustomerID, 
+    cst.City,
+    ord.OrderID, 
+    ord.OrderDate, 
+    ROW_NUMBER() OVER(PARTITION BY cst.CustomerID ORDER BY ord.OrderDate DESC) AS [RowNumber]
+    FROM Customer AS cst
+    INNER JOIN [Order] AS ord 
+    ON cst.CustomerID = ord.CustomerID
+) ptt
+WHERE 
+    ptt.[RowNumber] <= 3
+
+
+-- Query: Top 3 most expensive product in each product category
+SELECT 
+    ptt.*
+FROM
+(
+    SELECT
+        ctg.CategoryName,
+        prd.ProductName, 
+        prd.UnitPrice,
+        ROW_NUMBER() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RowNumber]
+    FROM 
+        Product prd
+        INNER JOIN Category ctg 
+        ON prd.CategoryID = ctg.CategoryID  
+) ptt
+WHERE 
+    ptt.[RowNumber] <= 3
+
+  
+-- Query: Order total quantity and percentage by product
+SELECT 
+    ord.OrderID, 
+    ord.ProductID, 
+    ord.Quantity,  
+    SUM(ord.Quantity) OVER(PARTITION BY ord.OrderID) AS Total,  
+    CAST(1. * ord.Quantity / SUM(ord.Quantity) OVER(PARTITION BY ord.OrderID) * 100 AS DECIMAL(5,2)) AS "PercByProduct"  
+FROM 
+    OrderDetail ord 
+WHERE 
+    ord.OrderID IN(10248,10249, 10250);  
+GO  
 
 
 -- Inserting and updating data
 
--- Query XX: Insert a new customer
+
+-- Query: Insert a new customer
 INSERT Customer ([CustomerID],[CompanyName],[ContactName],[ContactTitle],[Address],[City]) 
 --,[Region],[PostalCode],[Country],[Phone],[Fax]) 
 VALUES('AAAAA', 'agnos', 'Jacobus Geluk', 'CTO', 'Abbey Road', 'London')
 
--- Checking added record
+-- Checking if new customer has been added successfully
 SELECT * FROM Customer WHERE CustomerID = 'AAAAA' -- note on the sample database: ideally, CustomerID should be an integer incremental value.
 
 
--- Query XX: Update existing customer 
+-- Query: Update existing customer 
 UPDATE Customer
 SET Country = 'United Kingdom', PostalCode = 'SW1A 2AA', Address = '10 Downing Road'
 WHERE CustomerID = 'AAAAA'
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

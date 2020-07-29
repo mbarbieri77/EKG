@@ -4,7 +4,7 @@
 
 
 # Basic select with specified columns
-# Query 1: Employee titles 
+# Query: Employee titles 
 SELECT
   ?label
   ?lastName
@@ -20,7 +20,7 @@ WHERE {
 
 
 # Filtering Data
-# Query 2: List of Employees in the USA
+# Query: List of Employees in the USA
 SELECT
   ?label
   ?lastName
@@ -53,15 +53,17 @@ WHERE {
 
 
 # Returns a boolean indicating whether a query pattern matches or not.
-# Query 3: Do I have any employees in the UK?
+# Query: Do I have any employees in the UK?
 ASK {
   ?emp a :employee ;
          :country "UK" .
 }
 
 
+
+# Using string comparison
 # Character search pattern (Regex)
-# Query 4: Companies that contain the word "Rest" in their names.
+# Query: Companies that contain the word "Rest" in their names.
 SELECT
   ?companyName
   ?contactName
@@ -81,8 +83,10 @@ WHERE {
 
 
 # Joins
+
+
 # Joining product, category and supplier. 
-# Query 5: Selecting details of products supplied by companies located in the USA
+# Query: Selecting details of products supplied by companies located in the USA
 SELECT 
   ?productID 
   ?productName 
@@ -107,8 +111,57 @@ WHERE
 } 
 
 
-# Logical Operators
-# Query 6: Search specific products
+# Query: Customers who placed at least one order
+SELECT DISTINCT 
+  ?customer
+  ?companyName
+  ?postalCode
+  ?city
+  ?country 
+WHERE {
+  ?order    a :order .
+  ?customer a :customer .
+  ?order      :hasCustomer ?customer .
+  ?customer   :customerID ?customerID ;
+              :companyName ?companyName ;
+              :city ?city ;
+              :country ?country .
+  OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
+}
+ORDER BY
+  ?customer
+
+
+# Query: Customers who never placed an order
+SELECT DISTINCT 
+  ?customer
+  ?companyName
+  ?postalCode
+  ?city
+  ?country
+WHERE {
+  ?customer a :customer .
+  ?customer   :customerID ?customerID ;
+              :companyName ?companyName ;
+              :city ?city ;
+              :country ?country .
+  OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
+  OPTIONAL {
+    ?order a  :order .
+    ?customer ^:hasCustomer ?order # left join - for customers with no orders, ?order variable will be empty.
+  } 
+  FILTER (!BOUND(?order)) # Checks if variable is not bound to a value. 
+}
+ORDER BY
+  ?customer
+
+
+# Using Logical Operators
+
+
+# Query: Search specific products
+# All products with product names that begin with the letter T or have a product 
+# identification number of 46 and that have a price greater than $16.00.
 SELECT
   ?productName
   (STR(?unitPrice) AS ?strUnitPrice) # converting integer to string
@@ -125,12 +178,15 @@ WHERE {
   ?supplier :companyName ?supplierName ;  
             :country ?country ; 
   OPTIONAL {?supplier  :region ?region }. # not all suppliers have region
-  FILTER((REGEX(?productName, "^T", "i") || ?productID = 46) && ?unitPrice > 16) . # Logical operators
+  FILTER((REGEX(?productName, "^T", "i")) || (?productID = 46 && ?unitPrice > 16)) . # Logical operators
 }
 
 
 # Filtering on Data ranges
-# Query 7: Products in specified price range
+
+
+# Query: Products in specified price range
+# Retrieves products with a unit price between $10.00 and $20.00.
 SELECT
   ?productName
   ?companyName
@@ -144,12 +200,14 @@ WHERE {
   ?supplier a :supplier ;
        :companyName ?companyName ;
        :supplierID ?supplierID .
-  FILTER (?unitPrice >= 18 && ?unitPrice <= 20)
+  FILTER (?unitPrice >= 18 && ?unitPrice <= 20) 
 }
 
 
 # Filtering on list of values
-# Query 8: Suppliers in Japan and Italy
+
+
+# Query: List of suppliers that are located in Japan or Italy
 SELECT
   ?companyName
   ?country
@@ -162,9 +220,10 @@ WHERE {
 
 
 # Working with Nulls (next 3 examples)
-# Fax was a machine from the 90s able to scan and transmit a document over the phone line.
 
-# Query 9a: Select only suppliers that have a fax number
+
+# Query: Select only suppliers that have a fax number
+# Note: Fax was a machine from the 90s able to scan and transmit a document over the phone line.
 SELECT
   ?companyName
   ?fax
@@ -175,7 +234,7 @@ WHERE {
 }
 
 
-# Query 9b: Select all suppliers
+# Query: Select all suppliers
 SELECT
   ?companyName
   ?fax
@@ -186,7 +245,7 @@ WHERE {
 }
 
 
-# Query 9c: Select only suppliers that don't have a fax number
+# Query: Select only suppliers that don't have a fax number
 SELECT
   ?companyName
   ?fax
@@ -199,7 +258,9 @@ WHERE {
 
 
 # Sorting data
-# Query 10: Sort products in each product category by unit price descending
+
+
+# Query: Sort products in each product category by unit price descending
 SELECT
   ?productName
   ?categoryName
@@ -218,7 +279,9 @@ ORDER BY
 
 
 # Eliminating duplicates
-# Query 11: Select all countries I buy from
+
+
+# Query: Select all countries I buy from
 # Note that there are more than one supplier per country and DISTINCT has been used to eliminate the duplicates.
 SELECT DISTINCT ?country
 WHERE{
@@ -229,7 +292,9 @@ ORDER BY ?country # Default sorting
 
 
 # Column alias and string concatenation
-# Query 12: Create employee code
+
+
+# Query: Create employee code
 SELECT
   (CONCAT (?firstName, " ", ?lastName) AS ?fullName)
   ?code
@@ -248,8 +313,10 @@ SELECT
 
 
 # Limiting results
+
+
 # Joins product, order, and orderDetail
-# Query 13: Top 10 largest amount of a product sold in a single order
+# Query: Top 10 largest quantity of a product sold in a single order
 SELECT
     ?productName
     ?orderID
@@ -275,7 +342,9 @@ LIMIT 10
 
 
 # Counting
-# Query 14: Number of supplier
+
+
+# Query: Number of supplier
 SELECT (COUNT(1) AS ?supplierCount)
 WHERE{
   ?s a :supplier .
@@ -283,7 +352,9 @@ WHERE{
 
 
 # Distinct Counting
-# Query 15: Number of countries I buy from.
+
+
+# Query: Number of countries I buy from.
 SELECT (COUNT(DISTINCT ?country) AS ?countryCount)
 WHERE{
   ?s a :supplier ;
@@ -292,7 +363,9 @@ WHERE{
 
 
 # Grouping and Aggregating data
-# Query 16: Top 5 most sold products
+
+
+# Query: Top 5 most sold products
 SELECT
   ?productID
   (SUM(?quantity) AS ?totalQtySold)  
@@ -307,7 +380,7 @@ ORDER BY DESC(?totalQtySold)
 LIMIT 5
 
 
-# Query 17: Top 5 largest orders shipped to the USA
+# Query: Top 5 largest orders shipped to the USA
 SELECT
   ?orderID
   (ROUND(SUM(?unitPrice * ?quantity * (1 - ?discount))) AS ?total) 
@@ -328,7 +401,7 @@ ORDER BY
 LIMIT 5
 
 
-# Query 18: Orders over 10K shipped to the USA 
+# Query: Orders over 10K shipped to the USA 
 SELECT
   ?orderID
   (ROUND(SUM(?unitPrice * ?quantity * (1 - ?discount))) AS ?total)
@@ -349,7 +422,7 @@ ORDER BY
   DESC(?total)
 
 
-# Query 19: Top 5 Supplier Representative by number of products sold
+# Query: Top 5 Supplier Representative by number of products sold
 SELECT 
   ?supplierContactName 
   (COUNT(?product) as ?productCount)
@@ -367,10 +440,11 @@ ORDER BY
 LIMIT 5
 
 
+
 # Recommendation - Products frequently bought together (next 3 queries)
 
 
-# Query 20: Customers who bought product-61 also bought which products in the same order?
+# Query: Customers who bought product-61 also bought which products in the same order?
 SELECT 
   ?productA
   ?productB
@@ -384,7 +458,7 @@ GROUP BY ?productA ?productB
 ORDER BY DESC(?productBCount) ?productA ?productB # Most frequent at the top
 
 
-# Query 21: Customers who bought product-61 also bought which products across all orders?
+# Query: Customers who bought product-61 also bought which products across all orders?
 SELECT 
   ?productA
   ?productB
@@ -398,7 +472,7 @@ GROUP BY ?productA ?productB
 ORDER BY DESC(?productBCount) ?productA ?productB
 
 
-# Query 22: Number of times products 2 and 61 where bought by the same customer
+# Query: Number of times products 2 and 61 where bought by the same customer
 SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
@@ -455,53 +529,10 @@ SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
 
-# Query 23: Customers who placed at least one order
-SELECT DISTINCT 
-  ?customer
-  ?companyName
-  ?postalCode
-  ?city
-  ?country 
-WHERE {
-  ?order    a :order .
-  ?customer a :customer .
-  ?order      :hasCustomer ?customer .
-  ?customer   :customerID ?customerID ;
-              :companyName ?companyName ;
-              :city ?city ;
-              :country ?country .
-  OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
-}
-ORDER BY
-  ?customer
+# Combining multiple result sets using Union
 
 
-# Query 24: Customers who never placed an order
-SELECT DISTINCT 
-  ?customer
-  ?companyName
-  ?postalCode
-  ?city
-  ?country
-WHERE {
-  ?customer a :customer .
-  ?customer   :customerID ?customerID ;
-              :companyName ?companyName ;
-              :city ?city ;
-              :country ?country .
-  OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
-  OPTIONAL {
-    ?order a  :order .
-    ?customer ^:hasCustomer ?order # left join - for customers with no orders, ?order variable will be empty.
-  } 
-  FILTER (!BOUND(?order)) # Checks if variable is not bound to a value. 
-}
-ORDER BY
-  ?customer
-
-
-# Union
-# Query 25: Contact details of suppliers, customers and employees for Xmas cards
+# Query: Contact details of suppliers, customers and employees for Xmas cards
 SELECT
   ?contactName ?address ?city ?postalCode ?country
 WHERE {
@@ -538,29 +569,52 @@ WHERE {
 
 # Subqueries
 
-# Query 26: Select the two most recent orders of each customer  
-# FIX FIX FIX FIX THIS!!!!!!!!!!!!
+
+# Query: Select all products that belong to the Seafood category
+SELECT
+  ?productName
+  ?unitPrice
+  ?unitsInStock
+WHERE { # outer query
+  ?product a :product ;
+             :productName ?productName ;
+             :unitPrice ?unitPrice ;
+             :unitsInStock ?unitsInStock ;
+             :hasCategory ?category . 
+    { # inner query
+      SELECT 
+        ?category
+      WHERE {
+        ?category a :category ;
+                    :categoryID ?categoryID ;
+                    :name "Seafood" .
+      }
+    }
+  }
+  ORDER BY
+    ?productName
+
+
+
+# BELOW NEEDS FIXING!!!!!!
 # https://github.com/w3c/sparql-12/issues/100
+# Query: Select the two most recent orders of each customer  
 SELECT DISTINCT 
-  # from outer query
   ?customerID 
   ?city
-  # from inner query
-  ?orderID
-  ?orderDate
-WHERE {
-  # outer query
+WHERE { # outer query
   ?customer a :customer ;
               :customerID ?customerID ;
               :city ?city ;
               ^:hasCustomer ?order .
   { # inner query
     SELECT
-        ?orderID
-        ?orderDate
+        ?order
     WHERE {
-      ?order :orderID ?orderID ;
-             :orderDate ?orderDate .
+      ?order a :order ;
+               :orderID ?orderID ;
+               :orderDate ?orderDate ;
+               :hasCustomer ?customer .
     }
       ORDER BY
         DESC(?orderDate)
@@ -573,34 +627,16 @@ ORDER BY
   DESC(?orderDate)
 
 
-# Query 27: Top 3 most expensive product in each product category
-# TODO!!!!!!
-SELECT
-  ?productID
-  ?productName
-  ?categoryName
-  ?unitPrice
-WHERE {
-  ?s a :product ;
-       :productID ?productID ;
-       :productName ?productName ;
-       :unitPrice ?unitPrice ;
-       :hasCategory ?category .
-  ?category :name ?categoryName . 
-}
-ORDER BY 
-  ASC(?categoryName)
-  DESC(?unitPrice)
 
-# Running Totals
-# Query 28: 
-
+###################################### TODO ######################################
+# ADD THE REMAINING SUBQUERIES IN SQL HERE!
+# ALSO, THE Windowed Functions
 
 
 # Inserting and updating data
 
 
-# Query xx: Insert a new customer
+# Query: Insert a new customer
 INSERT DATA {
   :customer-AAAAA a :customer ;
   rdfs:label "customer-AAAAA" ;
@@ -641,7 +677,10 @@ WHERE {
 }
 
 
+
 # TODO:
+
+
 
 # sales of product 77 missing....
 # Update employee to add employeeID property.
