@@ -322,7 +322,7 @@ SELECT
 
 
 # Joins product, order, and orderDetail
-# Query: Top 10 largest quantity of a product sold in a single order
+# Query: Top 5 largest quantity of a product sold in a single order
 SELECT
     ?productName
     ?orderID
@@ -344,7 +344,36 @@ WHERE {
 ORDER BY 
   DESC(?quantity)
   DESC(?orderDate)
-LIMIT 10
+LIMIT 5
+
+
+# Pagination
+
+
+# Query: Retrieve records from 6 to 10 from list of largest quantity of a product sold in a single order
+SELECT
+    ?productName
+    ?orderID
+    ?orderDate
+    ?quantity
+    ?unitsInStock
+WHERE {
+  ?orderDetail  a :orderDetail .
+  ?order        a :order .
+  ?product      a :product .
+  ?orderDetail    :quantity         ?quantity ;
+                  :belongsToOrder   ?order ;
+                  :hasProduct       ?product .
+  ?order          :orderID          ?orderID ;
+                  :orderDate        ?orderDate .
+  ?product        :unitsInStock     ?unitsInStock ;
+                  :productName      ?productName .
+}
+ORDER BY 
+  DESC(?quantity)
+  DESC(?orderDate)
+OFFSET 5
+LIMIT 5
 
 
 # Counting
@@ -603,12 +632,11 @@ WHERE { # outer query
 
 
 
-# BELOW NEEDS FIXING!!!!!!
+# Correlated subqueries are not supported in SPARQL, and therefore, the following query doesn't produce the expected result.
 # https://github.com/w3c/sparql-12/issues/100
-# Query: Select the two most recent orders of each customer  
+# Query: Select the 3 most recent orders from each customer
 SELECT DISTINCT 
-  ?customerID 
-  ?city
+  *
 WHERE { # outer query
   ?customer a :customer ;
               :customerID ?customerID ;
@@ -625,7 +653,7 @@ WHERE { # outer query
     }
       ORDER BY
         DESC(?orderDate)
-      LIMIT 2
+      LIMIT 3
     }
   }
 ORDER BY
@@ -634,10 +662,35 @@ ORDER BY
   DESC(?orderDate)
 
 
+# A solution could be to run the following query for each customer in a loop and union the result sets in the end.
+# However, there is no recursion in SPARQL, either. Only way to solve this is to code it in the application.
+SELECT *
+WHERE {
+  ?orderDetail :hasProduct ?product ; 
+               :belongsToOrder ?order .
+  ?order       :hasCustomer ?customer ;
+               :orderDate ?orderDate .
+  FILTER (?customer = :customer-ALFKI)
+}
+ORDER BY
+  ?customer
+  DESC(?orderDate)
+LIMIT 3
+
+
+
 
 ###################################### TODO ######################################
 # ADD THE REMAINING SUBQUERIES IN SQL HERE!
-# ALSO, THE Windowed Functions
+# ALSO, The Window Functions
+
+# SPARQL 1.1 doesn't support:
+# Correlated subqueries
+# Window Functions: compute aggregated values such as moving averages, cumulative aggregates, running totals, or a top N numbering and ranking per group results.
+# Recursion operator
+# Error handling
+
+
 
 
 # Inserting and updating data
@@ -688,21 +741,20 @@ WHERE {
 # TODO:
 
 
-
-# sales of product 77 missing....
 # Update employee to add employeeID property.
 # SHACL - a couple of simple constraints.
 # Inserts that break SHACK constraints
-# OWL - a couple of simple properties, e.g. inverse property and inference.
 # Federated query
+# Property Path - need to find useful use cases in Northwind
+# Importing data from virtual graph - sales of product 77 missing....
+# Check commands to cover from here: https://www.w3.org/TR/sparql11-query/#WritingSimpleQueries
+# OWL - a couple of simple properties, e.g. inverse property and inference.
 # Trial Graph UIs
 # ontotext GraphDB
 # Hierarquical data
 # Running totals
-# Property Path - need to find useful use cases in Northwind
 # Examples in https://www.w3.org/TR/sparql11-query/#OptionalMatching
 # RDF*
-# Importing data from virtual graph
 # Temporal Data
 # ETL
 # PIVOT and UNPIVOT data (N/A, useful in tabular data)
@@ -718,12 +770,28 @@ WHERE {
 # https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#idp899488
 
 
+# SQL Features
+# INTERSECT and EXCEPT
+# 
 # Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
 # Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
 
 
 # Reasoning
 select * where { ?sub rdfs:subClassOf ?super }
+
+
+# U.S National Library of Medicine (MeSH) Sparql endpoint 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT *
+WHERE{
+    SERVICE <http://id.nlm.nih.gov/mesh/sparql> { 
+        <http://id.nlm.nih.gov/mesh/Q000302> ?p ?o .
+        FILTER(STR(?p) = "http://www.w3.org/2000/01/rdf-schema#label")
+    } 
+}
+
+
 
 # Federated query (Wikibase) - turn off reasoning!
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>

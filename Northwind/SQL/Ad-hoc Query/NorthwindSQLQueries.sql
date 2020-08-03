@@ -244,9 +244,10 @@ ORDER BY
 -- Limiting results
 
 
+-- Query: Top 5 largest quantity of a product sold in a single order
 -- TOP is a SQL Server extention. For MySql and Oracle syntaxes please check https://www.w3schools.com/sql/sql_top.asp
--- Query: Top 10 largest quantity of a product sold in a single order
-SELECT TOP 10
+-- Note that uncommenting WITH TIES would return more rows that tie for last place in the limited results set. 
+SELECT TOP 5 -- WITH TIES
     prd.ProductName, 
     ord.OrderID,
     ord.OrderDate,
@@ -261,6 +262,29 @@ FROM
 ORDER BY 
     odd.Quantity DESC,
     ord.OrderDate DESC
+
+
+-- Pagination
+
+
+-- Query: Retrieve records from 6 to 10 from list of largest quantity of a product sold in a single order
+SELECT
+    prd.ProductName, 
+    ord.OrderID,
+    ord.OrderDate,
+    odd.Quantity,
+    prd.UnitsInStock
+FROM
+    [Order] ord
+    INNER JOIN OrderDetail AS odd 
+    ON ord.orderID = odd.OrderID
+    INNER JOIN Product AS prd
+    ON odd.ProductID = prd.ProductID
+ORDER BY 
+    odd.Quantity DESC,
+    ord.OrderDate DESC
+OFFSET 5 ROWS  
+FETCH NEXT 5 ROWS ONLY;  
 
 
 -- Counting
@@ -527,7 +551,7 @@ ORDER BY
     prd.ProductName
 
 
--- Query: Select the 3 most recent orders of each customer
+-- Query: Select the 3 most recent orders from each customer
 SELECT 
     cst.CustomerID, 
     cst.City,
@@ -553,16 +577,13 @@ ORDER BY
     cpp.OrderDate DESC
 
 
-
--- Windowed Functions
-
-
--- Calculating row numbering and ranking, quantiles, moving averages, and running totals.
+-- Window Functions
+-- Compute aggregated values such as moving averages, cumulative aggregates, running totals, or a top N numbering and ranking per group results.
 -- Reference: https://docs.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-2017
 
 
--- Query: Select the 3 most recent orders of each customer
--- This query replaces the previous one by using the more efficient Windowed Function. 
+-- Query: Select the 3 most recent orders from each customer
+-- This query replaces the previous one by using the more efficient Window Function. 
 SELECT 
     ptt.*
 FROM
@@ -581,7 +602,8 @@ WHERE
     ptt.[RowNumber] <= 3
 
 
--- Query: Top 3 most expensive product in each product category
+-- Query: Top 10 most expensive product in each product category
+-- ROW_NUMBER is used to number the rows sequentially in the partition.
 SELECT 
     ptt.*
 FROM
@@ -590,16 +612,19 @@ FROM
         ctg.CategoryName,
         prd.ProductName, 
         prd.UnitPrice,
-        ROW_NUMBER() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RowNumber]
+        ROW_NUMBER() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RowNumber] 
     FROM 
         Product prd
         INNER JOIN Category ctg 
         ON prd.CategoryID = ctg.CategoryID  
 ) ptt
 WHERE 
-    ptt.[RowNumber] <= 3
-
+    ptt.[RowNumber] <= 10
+ORDER BY
+    ptt.CategoryName,
+    ptt.RowNumber 
   
+
 -- Query: Order total quantity and percentage by product
 SELECT 
     ord.OrderID, 
@@ -612,6 +637,35 @@ FROM
 WHERE 
     ord.OrderID IN(10248,10249, 10250);  
 GO  
+
+
+-- Query: Top 10 most expensive product in each product category (RANK, DENSE_RANK, NTILE)
+-- RANK: same as ROW_NUMBER, however it provides the same numeric value for ties.
+-- DENSE_RANK: the same as RANK, however it has no gaps in the ranking values.
+-- NTILE: distributes the rows in an ordered partition into a specified number of groups.
+-- Reference: https://docs.microsoft.com/en-us/sql/t-sql/functions/ranking-functions-transact-sql?view=sql-server-ver15
+SELECT 
+    ptt.*
+FROM
+(
+    SELECT
+        ctg.CategoryName,
+        prd.ProductName, 
+        prd.UnitPrice,
+        ROW_NUMBER() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RowNumber], 
+        RANK() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RANK],
+        DENSE_RANK() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [DENSE_RANK],
+        NTILE(6) OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [NTILE]
+    FROM 
+        Product prd
+        INNER JOIN Category ctg 
+        ON prd.CategoryID = ctg.CategoryID  
+) ptt
+WHERE 
+    ptt.[RowNumber] <= 10
+ORDER BY
+    ptt.CategoryName,
+    ptt.RowNumber 
 
 
 -- Inserting and updating data
@@ -630,5 +684,6 @@ SELECT * FROM Customer WHERE CustomerID = 'AAAAA' -- note on the sample database
 UPDATE Customer
 SET Country = 'United Kingdom', PostalCode = 'SW1A 2AA', Address = '10 Downing Road'
 WHERE CustomerID = 'AAAAA'
+
 
 
