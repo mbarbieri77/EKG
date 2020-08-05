@@ -686,4 +686,75 @@ SET Country = 'United Kingdom', PostalCode = 'SW1A 2AA', Address = '10 Downing R
 WHERE CustomerID = 'AAAAA'
 
 
+-- Query: Apply a 10% discount on the top 5 most expensive product in each product category
+-- Could have used a temp table to save the list of products affected in order to be able to check if the discount had been applied successfully.
+UPDATE 
+    Product
+SET 
+    UnitPrice = UnitPrice * 0.9
+WHERE 
+    ProductID IN
+    (
+        SELECT 
+            ptt.ProductID
+        FROM
+        (
+            SELECT
+                prd.ProductID,
+                ROW_NUMBER() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RowNumber] 
+            FROM 
+                Product prd
+                INNER JOIN Category ctg 
+                ON prd.CategoryID = ctg.CategoryID  
+        ) ptt
+        WHERE 
+            ptt.[RowNumber] <= 5
+    )
 
+
+-- Query: Apply a 10% discount on the top 5 most expensive product in each product category
+-- This time using a temp table to save the list of products affected in order to be able to check if the 
+-- discount has been applied successfully.
+-- This is a simple example, but a temp table could be used to store a dataset that goes under many calculations 
+-- before being commited to the actual table on the database.
+SELECT 
+    ptt.ProductID,
+    ptt.UnitPrice
+INTO    
+    #ProdDiscount
+FROM
+(
+    SELECT
+        prd.ProductID,
+        prd.UnitPrice,
+        ROW_NUMBER() OVER(PARTITION BY ctg.CategoryID ORDER BY prd.UnitPrice DESC) AS [RowNumber] 
+    FROM 
+        Product prd
+        INNER JOIN Category ctg 
+        ON prd.CategoryID = ctg.CategoryID  
+) ptt
+WHERE 
+    ptt.[RowNumber] <= 5
+
+
+UPDATE 
+    Product
+SET 
+    UnitPrice = UnitPrice * 0.9
+WHERE 
+    ProductID IN (SELECT ProductID FROM #ProdDiscount)
+
+
+-- Displaying final price after discount has been applied (which is not possible in the previous example, unless you use Temporal Tables, Change Tracking, etc)
+SELECT
+    prd.ProductID,
+    prd.UnitPrice
+FROM 
+    Product prd
+    INNER JOIN #ProdDiscount tpr
+    ON prd.ProductID = tpr.ProductID
+ORDER BY
+    prd.ProductID
+
+
+DROP TABLE IF EXISTS #ProdDiscount
