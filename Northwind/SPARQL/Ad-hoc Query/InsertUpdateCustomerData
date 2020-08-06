@@ -149,5 +149,3 @@ SELECT (COUNT(1) AS ?count) WHERE {?custormer a :customer} # 92
 SELECT (COUNT(1) AS ?count) WHERE {?order a :order } # 830
 
 
-# TODO: Delete all property values of an instance
-

@@ -1,0 +1,180 @@
+
+
+# TODO 
+
+# Add SHACL constraints 
+# Insert data that breaks SHACK constraints
+# Federated query
+# Hierarquical data
+# Temporal Data
+# Multi tenancy and row level security
+# Encryption
+# Insert and delete in atomic transaction
+# Test SHACL overhead on the writes
+# Named graph FROM vs FROM NAMED
+# RDF*
+# ETL
+# Graph Visualization 
+# Property Path - need to find more useful use cases in Northwind
+# OWL Ontoloty - add a couple of simple properties, e.g. inverse property and inference.
+# Add edge between :product and :customer to answer who bought which products whithout the need to traverse the whole path in the RDF schema. 
+# Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
+
+# Complete the series with examples from the following sources:
+# https://www.w3.org/TR/sparql11-query/#WritingSimpleQueries
+# https://www.w3.org/TR/sparql11-query/#OptionalMatching
+# https://www.stardog.com/tutorials/getting-started-1/
+# https://www.stardog.com/tutorials/similarity-search/
+# https://www.stardog.com/tutorials/sparql/
+# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#idp899488
+# SQL INTERSECT and EXCEPT
+# PIVOT and UNPIVOT (N/A, as it may be useful only in tabular data)
+
+# Fix data issues 
+# Data reconciliation and migrate missing records, e.g. sales of product 77 are missing
+# Add employeeID property to all instances of employee
+
+
+
+# TODO: Delete all property values of an instance
+
+
+# Named Graphs
+
+
+# Inserting data to a named graph
+INSERT DATA {
+    GRAPH :Temp1 { #<http://www.mysparql.com/resource/northwind/Temp1>
+        :customer-AAAAA a :customer ;
+        :country "UK" ;
+        :postalCode "SW1A 2AA" . 
+    } 
+}
+
+SELECT * 
+WHERE {
+  GRAPH :Temp1 #<http://www.mysparql.com/resource/northwind/Temp1>
+  {
+      ?s ?p ?o .
+  }
+}
+
+
+# Copying triples from one graph to another
+# http://vos.openlinksw.com/owiki/wiki/VOS/VirtTipsAndTricksSPARQL11Insert
+
+INSERT DATA 
+{ GRAPH <urn:sparql:tests:insert:informative3> {
+  
+    _:a  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>  <http://xmlns.com/foaf/0.1/Person> . 
+    _:a  <http://xmlns.com/foaf/0.1/name>                   "Alice" . 
+    _:a  <http://xmlns.com/foaf/0.1/mbox>                   <mailto:alice@example.com> . 
+
+    _:b  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>  <http://xmlns.com/foaf/0.1/Person> . 
+    _:b  <http://xmlns.com/foaf/0.1/name>  "Bob" . 
+  }
+}
+
+INSERT 
+  { 
+    GRAPH <urn:sparql:tests:insert:informative4>
+      {
+        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
+        ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email 
+      }
+  }
+WHERE
+  { 
+    GRAPH  <urn:sparql:tests:insert:informative3>
+      {
+        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
+        OPTIONAL { ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email } 
+      } 
+  }    
+
+
+SELECT * 
+FROM <urn:sparql:tests:insert:informative4> 
+WHERE 
+  {
+    ?s ?p ?o
+  }
+
+
+
+
+# Reasoning
+select * where { ?sub rdfs:subClassOf ?super }
+
+
+# U.S National Library of Medicine (MeSH) Sparql endpoint 
+prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT *
+WHERE{
+    SERVICE <http://id.nlm.nih.gov/mesh/sparql> { 
+        <http://id.nlm.nih.gov/mesh/Q000302> ?p ?o .
+        FILTER(STR(?p) = "http://www.w3.org/2000/01/rdf-schema#label")
+    } 
+}
+
+
+
+# Federated query (Wikibase) - turn off reasoning!
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT * 
+WHERE {  
+    SERVICE <https://query.wikidata.org/sparql> {
+         ?standard wdt:P1462 wd:Q37033 .
+        OPTIONAL{ ?standard wdt:P856 ?website }
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" 
+        }
+    }
+}
+
+
+# Federated query (Wikibase)
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+SELECT ?item ?itemLabel ?_image
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    wd:Q7918342 wdt:P279 wd:Q28803.
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+  OPTIONAL { ?item wdt:P18 ?_image. }
+  }
+}
+LIMIT 100
+
+
+# Show the names of 100 cities with a population larger than 1000000 in the native languages of their countries
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT ?city ?cityLabel ?country ?countryLabel ?lang ?langLabel ?langCode ?population
+WHERE {
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?city wdt:P1082 ?population .
+  
+    FILTER(?population>1000000)
+  
+    ?city wdt:P31 wd:Q515;
+          wdt:P17 ?country;
+          rdfs:label ?cityLabel .
+    ?country wdt:P37 ?lang;
+            rdfs:label ?countryLabel .
+    ?lang wdt:P424 ?langCode;
+          rdfs:label ?langLabel .
+
+    FILTER(lang(?cityLabel)=?langCode)
+    FILTER(lang(?countryLabel)=?langCode)
+    FILTER(lang(?langLabel)=?langCode)
+  }
+} LIMIT 10

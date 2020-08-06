@@ -31,9 +31,10 @@ ORDER BY
 
 
 -- Window Functions
--- Compute aggregated values such as moving averages, cumulative aggregates, running totals, or a top N numbering and ranking per group results.
--- Reference: https://docs.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-2017
-
+-- Compute aggregated values such as moving averages, cumulative aggregates, running totals, 
+-- or a top N numbering and ranking per group results.
+-- Reference: 
+-- https://docs.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-2017
 
 -- Query: Select the 3 most recent orders from each customer
 -- This query replaces the previous one by using the more efficient Window Function. 
@@ -55,7 +56,7 @@ WHERE
     ptt.[RowNumber] <= 3
 
 
--- Query: Top 10 most expensive product in each product category
+-- Query: Top 5 most expensive product in each product category
 -- ROW_NUMBER is used to number the rows sequentially in the partition.
 SELECT 
     ptt.*
@@ -72,7 +73,7 @@ FROM
         ON prd.CategoryID = ctg.CategoryID  
 ) ptt
 WHERE 
-    ptt.[RowNumber] <= 10
+    ptt.[RowNumber] <= 5
 ORDER BY
     ptt.CategoryName,
     ptt.RowNumber 
@@ -92,11 +93,12 @@ WHERE
 GO  
 
 
--- Query: Top 10 most expensive product in each product category (RANK, DENSE_RANK, NTILE)
+-- Query: Top 3 most expensive product in each product category (RANK, DENSE_RANK, NTILE)
 -- RANK: same as ROW_NUMBER, however it provides the same numeric value for ties.
 -- DENSE_RANK: the same as RANK, however it has no gaps in the ranking values.
 -- NTILE: distributes the rows in an ordered partition into a specified number of groups.
--- Reference: https://docs.microsoft.com/en-us/sql/t-sql/functions/ranking-functions-transact-sql?view=sql-server-ver15
+-- Reference: 
+-- https://docs.microsoft.com/en-us/sql/t-sql/functions/ranking-functions-transact-sql?view=sql-server-ver15
 SELECT 
     ptt.*
 FROM
@@ -115,14 +117,15 @@ FROM
         ON prd.CategoryID = ctg.CategoryID  
 ) ptt
 WHERE 
-    ptt.[RowNumber] <= 10
+    ptt.[RowNumber] <= 3
 ORDER BY
     ptt.CategoryName,
     ptt.RowNumber 
 
 
--- Query: Apply a 10% discount on the top 5 most expensive product in each product category
--- Could have used a temp table to save the list of products affected in order to be able to check if the discount had been applied successfully.
+-- Query: Apply a 10% discount on the top 3 most expensive product in each product category
+-- Could have used a temp table to save the list of products affected in order to be able to 
+-- check if the discount had been applied successfully.
 UPDATE 
     Product
 SET 
@@ -143,14 +146,14 @@ WHERE
                 ON prd.CategoryID = ctg.CategoryID  
         ) ptt
         WHERE 
-            ptt.[RowNumber] <= 5
+            ptt.[RowNumber] <= 3
     )
 
 
--- Query: Apply a 10% discount on the top 5 most expensive product in each product category.
+-- Query: Apply a 10% discount on the top 3 most expensive product in each product category.
 -- This time using a temp table to save the list of products affected.
--- This is a simple example, but a temp table could be used to store a dataset that goes under many calculations 
--- before being commited to the actual table on the database.
+-- This is a simple example, but a temp table could be used to store a dataset that goes under 
+-- many calculations before being commited to the actual table on the database.
 SELECT 
     ptt.ProductID,
     ptt.UnitPrice
@@ -168,7 +171,7 @@ FROM
         ON prd.CategoryID = ctg.CategoryID  
 ) ptt
 WHERE 
-    ptt.[RowNumber] <= 5
+    ptt.[RowNumber] <= 3
 
 
 UPDATE 

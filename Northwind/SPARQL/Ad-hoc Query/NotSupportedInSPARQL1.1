@@ -1,0 +1,60 @@
+
+
+# Not Supported in SPARQL 1.1
+
+
+# SPARQL 1.1 doesn't support:
+# Correlated subqueries
+# Window Functions: compute aggregated values such as moving averages, cumulative aggregates, running totals, or a top N numbering and ranking per group results.
+# Recursion operator
+# Error handling
+# Transactions?
+
+
+# Correlated subqueries are not supported in SPARQL, and therefore, the following 
+# query doesn't produce the expected result.
+# https://github.com/w3c/sparql-12/issues/100
+# Query: Select the 3 most recent orders from each customer
+SELECT DISTINCT 
+  *
+WHERE { # outer query
+  ?customer a :customer ;
+              :customerID ?customerID ;
+              :city ?city ;
+              ^:hasCustomer ?order .
+  { # inner query
+    SELECT
+        ?order
+    WHERE {
+      ?order a :order ;
+               :orderID ?orderID ;
+               :orderDate ?orderDate ;
+               :hasCustomer ?customer .
+    }
+      ORDER BY
+        DESC(?orderDate)
+      LIMIT 3
+    }
+  }
+ORDER BY
+  ?customerID 
+  ?city 
+  DESC(?orderDate)
+
+
+
+# A solution could be to run the following query for each customer in a loop and union the result sets in the end.
+# However, there is no recursion in SPARQL, either. Only way to solve this is to code it in the application.
+SELECT *
+WHERE {
+  ?orderDetail :hasProduct ?product ; 
+               :belongsToOrder ?order .
+  ?order       :hasCustomer ?customer ;
+               :orderDate ?orderDate .
+  FILTER (?customer = :customer-ALFKI)
+}
+ORDER BY
+  ?customer
+  DESC(?orderDate)
+LIMIT 3
+
