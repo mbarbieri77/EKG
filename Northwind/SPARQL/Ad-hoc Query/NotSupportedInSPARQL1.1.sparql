@@ -14,6 +14,7 @@
 # Correlated subqueries are not supported in SPARQL, and therefore, the following 
 # query doesn't produce the expected result.
 # https://github.com/w3c/sparql-12/issues/100
+
 # Query: Select the 3 most recent orders from each customer
 SELECT DISTINCT 
   *
