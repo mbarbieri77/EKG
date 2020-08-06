@@ -21,7 +21,7 @@ WHERE {
 }
 
 
-# Filtering Data
+# Filtering data
 
 
 # Query: List of Employees in the USA
@@ -56,6 +56,9 @@ WHERE {
 }
 
 
+# Testing for existence of query patterns
+
+
 # Returns a boolean indicating whether a query pattern matches or not.
 # Query: Do I have any employees in the UK?
 ASK {
@@ -65,7 +68,7 @@ ASK {
 
 
 
-# Using string comparison
+# Searching by string comparison
 
 
 # Character search pattern (Regex)
@@ -162,7 +165,7 @@ ORDER BY
   ?customer
 
 
-# Using Logical Operators
+# Using logical operators
 
 
 # Query: Search specific products
@@ -188,7 +191,7 @@ WHERE {
 }
 
 
-# Filtering on Data ranges
+# Filtering on ranges
 
 
 # Query: Products in specified price range
@@ -386,7 +389,7 @@ WHERE{
 }
 
 
-# Distinct Counting
+# Distinct counting
 
 
 # Query: Number of countries I buy from.
@@ -397,7 +400,7 @@ WHERE{
 }
 
 
-# Grouping and Aggregating data
+# Grouping and aggregating data
 
 
 # Query: Top 5 most sold products
@@ -458,6 +461,7 @@ ORDER BY
 
 
 # Query: Top 5 Supplier Representative by number of products sold
+# Sparql cannot return rows that tie for last place 
 SELECT 
   ?supplierContactName 
   (COUNT(?product) as ?productCount)
@@ -512,7 +516,7 @@ SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
 
-# The folloiwng are the 6 steps taken to develop the query above.
+# The following are the 6 steps taken to develop the query above.
 # For more details on Property Path, please refer to https://www.stardog.com/tutorials/sparql/#toc7.
 
 # Step 1: Triple pattern matching order, orderDetail, product and customer nodes that are directly connected. 
@@ -544,9 +548,9 @@ WHERE {
   FILTER (?product = :product-61)
 }
 
-# Step 4: Use a sequence path to omit the binding of the ?order varaible.
+# Step 4: Use a sequence path to omit the binding of the ?order variable.
 # All customers that bought product-61
-SELECT DISTINCT * # eliminates duplicates in case the same customer bouth a product more than once
+SELECT DISTINCT * # eliminates duplicates in case the same customer bought a product more than once
 WHERE {
   ?product ^:hasProduct/:belongsToOrder/:hasCustomer ?customer .
   FILTER (?product = :product-61)
@@ -554,7 +558,7 @@ WHERE {
 ORDER BY ?product
 
 # Step 5: Remove the ?product variable and apply the filter directly to the subject. 
-SELECT DISTINCT * # eliminates duplicates in case the same customer bouth a product more than once
+SELECT DISTINCT * # eliminates duplicates in case the same customer bought a product more than once
 WHERE {
   :product-61 ^:hasProduct/:belongsToOrder/:hasCustomer ?customer .
 }
@@ -565,7 +569,7 @@ SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
 
-# Combining multiple result sets using Union
+# Combining multiple result sets using union
 
 
 # Query: Contact details of suppliers, customers and employees for Xmas cards
@@ -631,68 +635,6 @@ WHERE { # outer query
     ?productName
 
 
-
-# Correlated subqueries are not supported in SPARQL, and therefore, the following query doesn't produce the expected result.
-# https://github.com/w3c/sparql-12/issues/100
-# Query: Select the 3 most recent orders from each customer
-SELECT DISTINCT 
-  *
-WHERE { # outer query
-  ?customer a :customer ;
-              :customerID ?customerID ;
-              :city ?city ;
-              ^:hasCustomer ?order .
-  { # inner query
-    SELECT
-        ?order
-    WHERE {
-      ?order a :order ;
-               :orderID ?orderID ;
-               :orderDate ?orderDate ;
-               :hasCustomer ?customer .
-    }
-      ORDER BY
-        DESC(?orderDate)
-      LIMIT 3
-    }
-  }
-ORDER BY
-  ?customerID 
-  ?city 
-  DESC(?orderDate)
-
-
-# A solution could be to run the following query for each customer in a loop and union the result sets in the end.
-# However, there is no recursion in SPARQL, either. Only way to solve this is to code it in the application.
-SELECT *
-WHERE {
-  ?orderDetail :hasProduct ?product ; 
-               :belongsToOrder ?order .
-  ?order       :hasCustomer ?customer ;
-               :orderDate ?orderDate .
-  FILTER (?customer = :customer-ALFKI)
-}
-ORDER BY
-  ?customer
-  DESC(?orderDate)
-LIMIT 3
-
-
-
-
-###################################### TODO ######################################
-# ADD THE REMAINING SUBQUERIES IN SQL HERE!
-# ALSO, The Window Functions
-
-# SPARQL 1.1 doesn't support:
-# Correlated subqueries
-# Window Functions: compute aggregated values such as moving averages, cumulative aggregates, running totals, or a top N numbering and ranking per group results.
-# Recursion operator
-# Error handling
-
-
-
-
 # Inserting and updating data
 
 
@@ -714,7 +656,7 @@ DESCRIBE :customer-AAAAA
 
 # Query: Update existing customer 
 # In SQL you can just update multiple colums of a record in a single update statement. 
-# However, in SPARQL, we will need to do this in two steps.
+# However, in SPARQL, we will need to acomplish this in two steps.
 
 # Step 1: Insert new triple for for the properties not included in Query 23
 INSERT DATA {
@@ -723,7 +665,7 @@ INSERT DATA {
   :postalCode "SW1A 2AA" . 
 }
 
-# Step 2: Update the property values added in Query 23. 
+# Step 2: Update the property values added. 
 DELETE {
   :customer-AAAAA :address ?oldAddress 
 }
@@ -737,118 +679,3 @@ WHERE {
 }
 
 
-
-# TODO:
-
-
-# Update employee to add employeeID property.
-# SHACL - a couple of simple constraints.
-# Inserts that break SHACK constraints
-# Federated query
-# Property Path - need to find useful use cases in Northwind
-# Importing data from virtual graph - sales of product 77 missing....
-# Check commands to cover from here: https://www.w3.org/TR/sparql11-query/#WritingSimpleQueries
-# OWL - a couple of simple properties, e.g. inverse property and inference.
-# Trial Graph UIs
-# ontotext GraphDB
-# Hierarquical data
-# Running totals
-# Examples in https://www.w3.org/TR/sparql11-query/#OptionalMatching
-# RDF*
-# Temporal Data
-# ETL
-# PIVOT and UNPIVOT data (N/A, useful in tabular data)
-# Are an Insert and delete in the same session an atomic transaction?
-# SHACL overhead on the writes
-# Named graph FROM vs FROM NAMED
-# Multi tenancy and row level security
-# Encryption
-# https://www.stardog.com/tutorials/sparql/
-# Complete the series below with examples from the following links:
-# https://www.stardog.com/tutorials/getting-started-1/
-# https://www.stardog.com/tutorials/similarity-search/
-# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#idp899488
-
-
-# SQL Features
-# INTERSECT and EXCEPT
-# 
-# Add edge between :product and :customer - who bought which products whithout the need to traverse the whole path above. 
-# Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
-
-
-# Reasoning
-select * where { ?sub rdfs:subClassOf ?super }
-
-
-# U.S National Library of Medicine (MeSH) Sparql endpoint 
-prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT *
-WHERE{
-    SERVICE <http://id.nlm.nih.gov/mesh/sparql> { 
-        <http://id.nlm.nih.gov/mesh/Q000302> ?p ?o .
-        FILTER(STR(?p) = "http://www.w3.org/2000/01/rdf-schema#label")
-    } 
-}
-
-
-
-# Federated query (Wikibase) - turn off reasoning!
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-
-SELECT * 
-WHERE {  
-    SERVICE <https://query.wikidata.org/sparql> {
-         ?standard wdt:P1462 wd:Q37033 .
-        OPTIONAL{ ?standard wdt:P856 ?website }
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en" 
-        }
-    }
-}
-
-
-# Federated query (Wikibase)
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-SELECT ?item ?itemLabel ?_image
-WHERE {
-  SERVICE <https://query.wikidata.org/sparql> {
-    wd:Q7918342 wdt:P279 wd:Q28803.
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-  OPTIONAL { ?item wdt:P18 ?_image. }
-  }
-}
-LIMIT 100
-
-
-# Show the names of 100 cities with a population larger than 1000000 in the native languages of their countries
-PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-PREFIX wd: <http://www.wikidata.org/entity/>
-PREFIX wikibase: <http://wikiba.se/ontology#>
-PREFIX bd: <http://www.bigdata.com/rdf#>
-
-SELECT ?city ?cityLabel ?country ?countryLabel ?lang ?langLabel ?langCode ?population
-WHERE {
-  SERVICE <https://query.wikidata.org/sparql> {
-    ?city wdt:P1082 ?population .
-  
-    FILTER(?population>1000000)
-  
-    ?city wdt:P31 wd:Q515;
-          wdt:P17 ?country;
-          rdfs:label ?cityLabel .
-    ?country wdt:P37 ?lang;
-            rdfs:label ?countryLabel .
-    ?lang wdt:P424 ?langCode;
-          rdfs:label ?langLabel .
-
-    FILTER(lang(?cityLabel)=?langCode)
-    FILTER(lang(?countryLabel)=?langCode)
-    FILTER(lang(?langLabel)=?langCode)
-  }
-} LIMIT 10

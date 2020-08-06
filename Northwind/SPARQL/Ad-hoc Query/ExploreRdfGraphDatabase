@@ -1,6 +1,6 @@
 
 
-# Useful SPARQL Queries
+# Explore the Graph Database
 
 
 # Total triple count
@@ -9,17 +9,6 @@ WHERE {
     ?s ?p ?o .
 }
 
-
-# Total triple count on a virtual graph
-SELECT (COUNT(?s) as ?numTriples)
-WHERE {
-  GRAPH <virtual://nwvg> 
-  {
-      ?s ?p ?o .
-  }
-}
-
-# Useful SPARQL Queries
 
 # Selecting all properties of a Class, e.g. order
 SELECT DISTINCT
@@ -31,7 +20,8 @@ WHERE {
         ?object a ?oClass .
     }
     BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
-    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range && ?domain = :order)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
+    && ?domain = :order)
 }
 
 
@@ -55,7 +45,9 @@ ORDER BY DESC(?classCount)
 
 
 # Constructing a graph
-# In Stardog Studio, in the Visual Graph, select "No Group" in nodes and choose IRI for the caption.
+# The result of this query can be used to visualize the graph schema. 
+# In Stardog Studio, clik on "Visual", select "No Group" in nodes section and at the bottom of 
+# the screen, choose IRI from the caption drop down.
 CONSTRUCT {
     ?domain ?prop ?range
 }
@@ -70,8 +62,8 @@ WHERE {
 }
 
 
-# Returning all the outgoing edges of the node
-# In case you are using Stardog Studio, use the Visual view mode. 
+# Returning all the outgoing edges of the node (execute one statement at a time)
+# In case you are using Stardog Studio, click on "Visual" to visualize the graph schema. 
 DESCRIBE :orderDetail-10248-72
 DESCRIBE :order-10248
 DESCRIBE :product-1
