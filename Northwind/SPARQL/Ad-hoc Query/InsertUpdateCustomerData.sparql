@@ -61,7 +61,7 @@ WHERE {
        OPTIONAL {?s :region ?region}
        OPTIONAL {?s :country ?country}
        OPTIONAL {?s :postalCode ?postalCode}   
-  #FILTER (?s = :customer-AAAAA)    
+  FILTER (?s = :customer-AAAAA)    
 }
 ORDER BY ?s 
 #LIMIT 1 # Could be used if there was an incremental ID
@@ -87,7 +87,8 @@ WHERE {
 }
 
 
-# You can use the result of the construct above or just do a straight delete when you know the triple to be excluded. 
+# You can use the result of the construct above or just do a straight 
+# delete when you know the triple to be excluded. 
 # It will not return an error if a triple doesn't exist.
 DELETE DATA
 {
@@ -95,7 +96,7 @@ DELETE DATA
 }
 
 
-# Checking if the triple went away. 
+# Checking if the triple with the wrong property "portalCode" went away. 
 SELECT DISTINCT
   ?domain ?prop ?range
 WHERE {
