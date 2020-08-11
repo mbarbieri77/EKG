@@ -654,6 +654,22 @@ WHERE { # outer query
     ?productName
 
 
+# Query: Calculate the average number of orders processed per year 
+SELECT 
+  (ROUND(AVG(?orderCount)) AS ?avgCount) 
+  (MIN(?orderYear) AS ?startYear)
+  (MAX(?orderYear) AS ?endYear)
+{
+  SELECT ?orderYear (count(?order) AS ?orderCount)
+  WHERE {
+    ?order a :order ;
+            :orderDate ?orderDate ;
+    BIND(year(?orderDate) AS ?orderYear)
+  }
+  GROUP BY ?orderYear
+}
+
+
 # Inserting and updating data
 
 

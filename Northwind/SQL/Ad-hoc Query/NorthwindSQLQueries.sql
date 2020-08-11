@@ -559,6 +559,23 @@ ORDER BY
     prd.ProductName
 
 
+-- Query: Calculate the average number of orders processed per year
+SELECT 
+    ROUND(AVG(OrderCount), 0) AS AvgCount, 
+    MIN (OrderYear) AS StartYear, 
+    MAX(OrderYear) AS EndYear
+FROM
+(
+    SELECT
+        COUNT(OrderID) AS OrderCount,
+        datepart(year, OrderDate) AS OrderYear
+    FROM 
+        [Order]
+    GROUP BY
+        datepart(year, OrderDate)
+) AS t
+
+
 -- Inserting and updating data
 
 
