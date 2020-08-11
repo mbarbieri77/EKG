@@ -266,6 +266,25 @@ WHERE {
 }
 
 
+# Same result can be obtained by using NOT EXISTS filter
+SELECT 
+  ?companyName
+  ?fax
+ WHERE {
+    ?s a :supplier ;
+         :companyName ?companyName .
+    FILTER NOT EXISTS {
+      SELECT
+        ?companyName
+      WHERE {
+        ?s a :supplier ;
+            :companyName ?companyName ;
+            :fax ?fax . 
+        }
+    }
+ }
+
+
 # Sorting data
 
 

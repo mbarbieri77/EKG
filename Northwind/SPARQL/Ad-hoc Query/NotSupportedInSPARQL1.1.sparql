@@ -59,3 +59,7 @@ ORDER BY
   DESC(?orderDate)
 LIMIT 3
 
+
+# ROUND, CEIL and FLOOR
+# Add decimal point to the functions above. 
+
