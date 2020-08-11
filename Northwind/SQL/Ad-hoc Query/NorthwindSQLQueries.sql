@@ -121,7 +121,7 @@ WHERE
     ord.ShipCountry IS NULL
 
 
--- Using logical operators
+-- Using comparison and logical operators
 
 
 -- Query: Search specific products
