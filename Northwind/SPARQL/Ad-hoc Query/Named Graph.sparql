@@ -39,6 +39,7 @@ INSERT
         ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email 
       }
   }
+#SELECT *
 WHERE
   { 
     GRAPH  <urn:sparql:tests:insert:informative3>
@@ -77,15 +78,35 @@ SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
 
 WITH <urn:sparql:tests:insert:informative4> 
 DELETE {?s ?p ?o} WHERE {?s ?p ?o}
+#INSERT ....
+
 
 SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
 
+
+# The FROM and FROM NAMED keywords allow a query to specify an RDF dataset by reference; 
+# they indicate that the dataset should include graphs that are obtained from representations 
+#of the resources identified by the given IRIs (i.e. the absolute form of the given IRI references). 
+# The dataset resulting from a number of FROM and FROM NAMED clauses is:
+# - a default graph consisting of the RDF merge of the graphs referred to in the FROM clauses, and
+# - a set of (IRI, graph) pairs, one from each FROM NAMED clause.
 SELECT * 
-FROM DEFAULT
 FROM :Temp1 
-FROM <urn:sparql:tests:insert:informative3>
-FROM <urn:sparql:tests:insert:informative4>
+FROM <urn:sparql:tests:insert:informative3> 
+FROM <urn:sparql:tests:insert:informative4> 
 WHERE {?s ?p ?o}
+
+
+SELECT * 
+FROM NAMED :Temp1 
+FROM NAMED <urn:sparql:tests:insert:informative3> 
+FROM NAMED <urn:sparql:tests:insert:informative4>
+WHERE { GRAPH ?g {?s ?p ?o}} 
+
+
+# TODO!!!!
+# https://www.w3.org/TR/sparql11-query/#neg-notexists-minus
+
 
 
 CREATE GRAPH :Temp2
@@ -93,7 +114,7 @@ CREATE GRAPH :Temp2
 # Works fine!
 SELECT ?graph (count(*) as ?size) 
 #FROM NAMED stardog:context:all 
-FROM NAMED stardog:context:default
+#FROM NAMED stardog:context:default
 #FROM NAMED stardog:context:named 
 #FROM NAMED stardog:context:local 
 FROM NAMED <urn:sparql:tests:insert:informative3> 
@@ -106,29 +127,11 @@ ORDER BY desc(?size)
 
 
 
-# This query puts unnamed graph and the context1 graph into SPARQL default graph, 
-# where the triples can be found by using a simple {?s ?p ?o . } query. 
-# Then it identifies <urn:sparql:tests:insert:informative4> as a named graph, which can be searched using a GRAPH pattern. 
-# In the final line, we used a UNION operator to combine the matches of the simple and GRAPH patterns.
-
-SELECT ?s ?p ?o #?g
-    #FROM <urn:sparql:tests:insert:informative3>
-    FROM NAMED <urn:sparql:tests:insert:informative4> {
-        { ?s ?p ?o } 
-        #UNION { GRAPH ?g { ?s ?p ?o } }
-    }
+LOAD <https://github.com/mbarbieri77/EKG/blob/master/Northwind/SPARQL/SampleDatabase/dumpdataNTRIPLE7.nt>
+INTO GRAPH :Temp3
 
 
-
-
-
-  SELECT * 
-  {
-    graph <urn:sparql:tests:insert:informative4> 
-    {?s ?p ?o}
-  }
-
-
+SELECT * {graph <urn:sparql:tests:insert:informative4> {?s ?p ?o} }
 
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
@@ -160,6 +163,8 @@ SELECT *
 FROM <http://example/bookStore>
 WHERE {?s ?p ?o}
 
+# The COPY operation is a shortcut for inserting all data from an input graph into a destination graph. 
+# Data from the input graph is not affected, but data from the destination graph, if any, is removed before insertion.
 COPY <http://example/bookStore> TO <http://example/bookStore2>
 
 SELECT * 
@@ -191,4 +196,11 @@ PREFIX ns: <http://example.org/ns#>
 INSERT DATA
 { GRAPH <http://example/bookStore> { <http://example/book2>  ns:price  50 } }
 
+# The ADD operation is a shortcut for inserting all data from an input graph into a destination graph. 
+# Data from the input graph is not affected, and initial data from the destination graph, if any, is kept intact.
 ADD <http://example/bookStore> TO <http://example/bookStore2>
+
+SELECT * 
+FROM <http://example/bookStore2>
+WHERE {?s ?p ?o}
+
