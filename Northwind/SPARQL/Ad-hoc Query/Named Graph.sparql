@@ -1,0 +1,194 @@
+# Named Graphs
+# https://dl.psnc.pl/2011/10/04/roznica-pomiedzy-from-ifrom-named-w-jezyku-sparql-oraz-analogiczne-zapytania-w-serql/
+
+
+# Inserting data to a named graph
+INSERT DATA {
+    GRAPH :Temp1 { #<http://www.mysparql.com/resource/northwind/Temp1>
+        :customer-AAAAA a :customer ;
+        :country "UK" ;
+        :postalCode "SW1A 2AA" . 
+    } 
+}
+
+SELECT * 
+WHERE {GRAPH :Temp1 {?s ?p ?o}} #<http://www.mysparql.com/resource/northwind/Temp1>}
+
+
+
+# Copying triples from one graph to another
+# http://vos.openlinksw.com/owiki/wiki/VOS/VirtTipsAndTricksSPARQL11Insert
+
+INSERT DATA 
+{ GRAPH <urn:sparql:tests:insert:informative3> {
+  
+    _:a  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>  <http://xmlns.com/foaf/0.1/Person> . 
+    _:a  <http://xmlns.com/foaf/0.1/name>                   "Alice" . 
+    _:a  <http://xmlns.com/foaf/0.1/mbox>                   <mailto:alice@example.com> . 
+
+    _:b  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>  <http://xmlns.com/foaf/0.1/Person> . 
+    _:b  <http://xmlns.com/foaf/0.1/name>  "Bob" . 
+  }
+}
+ 
+INSERT 
+  { 
+    GRAPH <urn:sparql:tests:insert:informative4>
+      {
+        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
+        ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email 
+      }
+  }
+WHERE
+  { 
+    GRAPH  <urn:sparql:tests:insert:informative3>
+      {
+        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
+        OPTIONAL { ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email } 
+      } 
+  }    
+
+
+INSERT 
+  { 
+    GRAPH <urn:sparql:tests:insert:informative4>
+      {
+        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
+        ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email 
+      }
+  }
+WHERE
+  { 
+    GRAPH  <urn:sparql:tests:insert:informative3>
+      {
+        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
+        OPTIONAL { ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email } 
+      } 
+  }   
+
+
+SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
+
+CLEAR GRAPH <urn:sparql:tests:insert:informative4> 
+
+COPY <urn:sparql:tests:insert:informative3> TO <urn:sparql:tests:insert:informative4>
+
+SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
+
+WITH <urn:sparql:tests:insert:informative4> 
+DELETE {?s ?p ?o} WHERE {?s ?p ?o}
+
+SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
+
+SELECT * 
+FROM DEFAULT
+FROM :Temp1 
+FROM <urn:sparql:tests:insert:informative3>
+FROM <urn:sparql:tests:insert:informative4>
+WHERE {?s ?p ?o}
+
+
+CREATE GRAPH :Temp2
+
+# Works fine!
+SELECT ?graph (count(*) as ?size) 
+#FROM NAMED stardog:context:all 
+FROM NAMED stardog:context:default
+#FROM NAMED stardog:context:named 
+#FROM NAMED stardog:context:local 
+FROM NAMED <urn:sparql:tests:insert:informative3> 
+FROM NAMED <urn:sparql:tests:insert:informative4> 
+FROM NAMED :Temp1 
+FROM NAMED :Temp2
+WHERE { GRAPH ?graph {?s ?p ?o}} 
+GROUP BY ?graph
+ORDER BY desc(?size)
+
+
+
+# This query puts unnamed graph and the context1 graph into SPARQL default graph, 
+# where the triples can be found by using a simple {?s ?p ?o . } query. 
+# Then it identifies <urn:sparql:tests:insert:informative4> as a named graph, which can be searched using a GRAPH pattern. 
+# In the final line, we used a UNION operator to combine the matches of the simple and GRAPH patterns.
+
+SELECT ?s ?p ?o #?g
+    #FROM <urn:sparql:tests:insert:informative3>
+    FROM NAMED <urn:sparql:tests:insert:informative4> {
+        { ?s ?p ?o } 
+        #UNION { GRAPH ?g { ?s ?p ?o } }
+    }
+
+
+
+
+
+  SELECT * 
+  {
+    graph <urn:sparql:tests:insert:informative4> 
+    {?s ?p ?o}
+  }
+
+
+
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+INSERT DATA
+{ 
+  <http://example/book1> dc:title "A new book" ;
+                         dc:creator "A.N.Other" .
+}
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+DELETE DATA
+{
+  <http://example/book1> dc:title "A new book" ;
+                         dc:creator "A.N.Other" .
+}
+
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+SELECT * {{?s dc:title ?o} UNION {?s dc:creator ?o }}
+
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore> { <http://example/book1>  ns:price  42 } }
+
+
+SELECT * 
+FROM <http://example/bookStore>
+WHERE {?s ?p ?o}
+
+COPY <http://example/bookStore> TO <http://example/bookStore2>
+
+SELECT * 
+FROM <http://example/bookStore2>
+WHERE {?s ?p ?o}
+
+# The MOVE operation is a shortcut for moving all data from an input graph into a destination graph. 
+# The input graph is removed after insertion and data from the destination graph, if any, is removed before insertion.
+MOVE <http://example/bookStore> TO <http://example/bookStore2>
+
+
+SELECT * 
+FROM <http://example/bookStore>
+WHERE {?s ?p ?o}
+
+SELECT * 
+FROM <http://example/bookStore2>
+WHERE {?s ?p ?o}
+
+CLEAR GRAPH <http://example/bookStore2>
+
+SELECT * 
+FROM <http://example/bookStore2>
+WHERE {?s ?p ?o}
+
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore> { <http://example/book2>  ns:price  50 } }
+
+ADD <http://example/bookStore> TO <http://example/bookStore2>
