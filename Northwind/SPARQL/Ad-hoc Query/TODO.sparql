@@ -39,68 +39,18 @@
 # TODO: Delete all property values of an instance
 
 
-# Named Graphs
-
-
-# Inserting data to a named graph
-INSERT DATA {
-    GRAPH :Temp1 { #<http://www.mysparql.com/resource/northwind/Temp1>
-        :customer-AAAAA a :customer ;
-        :country "UK" ;
-        :postalCode "SW1A 2AA" . 
-    } 
-}
-
-SELECT * 
-WHERE {
-  GRAPH :Temp1 #<http://www.mysparql.com/resource/northwind/Temp1>
-  {
-      ?s ?p ?o .
-  }
-}
-
-
-# Copying triples from one graph to another
-# http://vos.openlinksw.com/owiki/wiki/VOS/VirtTipsAndTricksSPARQL11Insert
-
-INSERT DATA 
-{ GRAPH <urn:sparql:tests:insert:informative3> {
-  
-    _:a  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>  <http://xmlns.com/foaf/0.1/Person> . 
-    _:a  <http://xmlns.com/foaf/0.1/name>                   "Alice" . 
-    _:a  <http://xmlns.com/foaf/0.1/mbox>                   <mailto:alice@example.com> . 
-
-    _:b  <http://www.w3.org/1999/02/22-rdf-syntax-ns#type>  <http://xmlns.com/foaf/0.1/Person> . 
-    _:b  <http://xmlns.com/foaf/0.1/name>  "Bob" . 
-  }
-}
-
-INSERT 
-  { 
-    GRAPH <urn:sparql:tests:insert:informative4>
+# Subquery
+# An example like this one for Northwind
+SELECT (avg(?count) AS ?avgCount)
+{
+      SELECT ?year (count(?album) AS ?count)
       {
-        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
-        ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email 
+            ?album a :Album ;
+                  :date ?date ;
+            BIND (year(?date) AS ?year)
       }
-  }
-WHERE
-  { 
-    GRAPH  <urn:sparql:tests:insert:informative3>
-      {
-        ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
-        OPTIONAL { ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email } 
-      } 
-  }    
-
-
-SELECT * 
-FROM <urn:sparql:tests:insert:informative4> 
-WHERE 
-  {
-    ?s ?p ?o
-  }
-
-
+      GROUP BY ?year
+}
 
 
 # Reasoning
