@@ -1,21 +1,3 @@
-# Named Graphs
-# https://dl.psnc.pl/2011/10/04/roznica-pomiedzy-from-ifrom-named-w-jezyku-sparql-oraz-analogiczne-zapytania-w-serql/
-
-
-# Inserting data to a named graph
-INSERT DATA {
-    GRAPH :Temp1 { #<http://www.mysparql.com/resource/northwind/Temp1>
-        :customer-AAAAA a :customer ;
-        :country "UK" ;
-        :postalCode "SW1A 2AA" . 
-    } 
-}
-
-SELECT * 
-WHERE {GRAPH :Temp1 {?s ?p ?o}} #<http://www.mysparql.com/resource/northwind/Temp1>}
-
-
-
 # Copying triples from one graph to another
 # http://vos.openlinksw.com/owiki/wiki/VOS/VirtTipsAndTricksSPARQL11Insert
 
@@ -31,15 +13,19 @@ INSERT DATA
   }
 }
  
+ SELECT * FROM <urn:sparql:tests:insert:informative3> WHERE {?s ?p ?o}
+
+
+# Copy triples from grahp 3 to 4
+WITH <urn:sparql:tests:insert:informative4> # This syntax removes the need to specify the graph multiple times in insertes and deletes.
 INSERT 
   { 
-    GRAPH <urn:sparql:tests:insert:informative4>
-      {
+    # GRAPH <urn:sparql:tests:insert:informative4>
+    #   {
         ?person  <http://xmlns.com/foaf/0.1/name>  ?name . 
         ?person  <http://xmlns.com/foaf/0.1/mbox>  ?email 
-      }
+    #   }
   }
-#SELECT *
 WHERE
   { 
     GRAPH  <urn:sparql:tests:insert:informative3>
@@ -50,6 +36,10 @@ WHERE
   }    
 
 
+SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
+
+
+#  A second insert of the same data doesn't produce duplicates
 INSERT 
   { 
     GRAPH <urn:sparql:tests:insert:informative4>
@@ -68,70 +58,88 @@ WHERE
   }   
 
 
-SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
-
-CLEAR GRAPH <urn:sparql:tests:insert:informative4> 
-
-COPY <urn:sparql:tests:insert:informative3> TO <urn:sparql:tests:insert:informative4>
-
-SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
-
-WITH <urn:sparql:tests:insert:informative4> 
-DELETE {?s ?p ?o} WHERE {?s ?p ?o}
-#INSERT ....
-
-
-SELECT * FROM <urn:sparql:tests:insert:informative4> WHERE {?s ?p ?o}
-
-
-# The FROM and FROM NAMED keywords allow a query to specify an RDF dataset by reference; 
-# they indicate that the dataset should include graphs that are obtained from representations 
-#of the resources identified by the given IRIs (i.e. the absolute form of the given IRI references). 
-# The dataset resulting from a number of FROM and FROM NAMED clauses is:
-# - a default graph consisting of the RDF merge of the graphs referred to in the FROM clauses, and
-# - a set of (IRI, graph) pairs, one from each FROM NAMED clause.
-SELECT * 
-FROM :Temp1 
-FROM <urn:sparql:tests:insert:informative3> 
-FROM <urn:sparql:tests:insert:informative4> 
-WHERE {?s ?p ?o}
-
-
-SELECT * 
-FROM NAMED :Temp1 
-FROM NAMED <urn:sparql:tests:insert:informative3> 
-FROM NAMED <urn:sparql:tests:insert:informative4>
-WHERE { GRAPH ?g {?s ?p ?o}} 
-
-
 # TODO!!!!
 # https://www.w3.org/TR/sparql11-query/#neg-notexists-minus
 
 
+# The FROM and FROM NAMED keywords allow a query to specify an RDF dataset by reference; 
+# they indicate that the dataset should include graphs that are obtained from representations 
+# of the resources identified by the given IRIs (i.e. the absolute form of the given IRI references). 
+# The dataset resulting from a number of FROM and FROM NAMED clauses is:
+# - a default graph consisting of the RDF merge of the graphs referred to in the FROM clauses, and
+# - a set of (IRI, graph) pairs, one from each FROM NAMED clause.
 
-CREATE GRAPH :Temp2
 
-# Works fine!
-SELECT ?graph (count(*) as ?size) 
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore10> { <http://example/book1>  ns:price  10 } }
+
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore20> { <http://example/book1>  ns:price  20 } }
+
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore20> { <http://example/book1>  ns:price  10 } }
+
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore30> { <http://example/book1>  ns:price  30 } }
+
+
+# Merge all of them, duplicates are added.
+SELECT *
+FROM <http://example/bookStore10> 
+FROM <http://example/bookStore20>
+FROM <http://example/bookStore30>
+WHERE {?s ?p ?o}
+
+
+# Merge all of them, duplicates are added.
+SELECT *
+FROM NAMED <http://example/bookStore10> 
+FROM NAMED <http://example/bookStore20>
+FROM NAMED <http://example/bookStore30>
+WHERE { GRAPH ?g {?s ?p ?o}} 
+
+
+# Default graph with mergeo of graphs referenced in FROM 
+SELECT *
+FROM <http://example/bookStore10> 
+FROM <http://example/bookStore20>
+FROM NAMED <http://example/bookStore30>
+WHERE {?s ?p ?o}
+
+
+# IRI and Graph pairs of graphs referenced in FROM NAMED
+SELECT *
+FROM <http://example/bookStore10> 
+FROM <http://example/bookStore20>
+FROM NAMED <http://example/bookStore30>
+WHERE { GRAPH ?g {?s ?p ?o}} 
+
+
+# Counting triples in each graph
+SELECT ?g (count(*) as ?size) 
 #FROM NAMED stardog:context:all 
 #FROM NAMED stardog:context:default
 #FROM NAMED stardog:context:named 
 #FROM NAMED stardog:context:local 
-FROM NAMED <urn:sparql:tests:insert:informative3> 
-FROM NAMED <urn:sparql:tests:insert:informative4> 
-FROM NAMED :Temp1 
-FROM NAMED :Temp2
-WHERE { GRAPH ?graph {?s ?p ?o}} 
-GROUP BY ?graph
+FROM NAMED <http://example/bookStore10> 
+FROM NAMED <http://example/bookStore20>
+FROM NAMED <http://example/bookStore30>
+WHERE { GRAPH ?g {?s ?p ?o}} 
+GROUP BY ?g
 ORDER BY desc(?size)
 
 
+# CREATE an empty Graph
+CREATE GRAPH :NewEmptyGraph
 
+
+# Load data into a Graph
 LOAD <https://github.com/mbarbieri77/EKG/blob/master/Northwind/SPARQL/SampleDatabase/dumpdataNTRIPLE7.nt>
-INTO GRAPH :Temp3
-
-
-SELECT * {graph <urn:sparql:tests:insert:informative4> {?s ?p ?o} }
+INTO GRAPH :ntriple7
 
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
@@ -142,16 +150,14 @@ INSERT DATA
 }
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
+SELECT * {{?s dc:title ?o} UNION {?s dc:creator ?o }}
+
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
 DELETE DATA
 {
   <http://example/book1> dc:title "A new book" ;
                          dc:creator "A.N.Other" .
 }
-
-
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-SELECT * {{?s dc:title ?o} UNION {?s dc:creator ?o }}
-
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX ns: <http://example.org/ns#>
@@ -175,32 +181,40 @@ WHERE {?s ?p ?o}
 # The input graph is removed after insertion and data from the destination graph, if any, is removed before insertion.
 MOVE <http://example/bookStore> TO <http://example/bookStore2>
 
+SELECT * 
+FROM NAMED <http://example/bookStore>
+FROM NAMED <http://example/bookStore2>
+WHERE {GRAPH ?g {?s ?p ?o}}
 
 SELECT * 
 FROM <http://example/bookStore>
-WHERE {?s ?p ?o}
-
-SELECT * 
 FROM <http://example/bookStore2>
 WHERE {?s ?p ?o}
 
-CLEAR GRAPH <http://example/bookStore2>
-
-SELECT * 
-FROM <http://example/bookStore2>
-WHERE {?s ?p ?o}
-
+CLEAR GRAPH <http://example/bookStore> 
+CLEAR GRAPH <http://example/bookStore2> 
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX ns: <http://example.org/ns#>
 INSERT DATA
 { GRAPH <http://example/bookStore> { <http://example/book2>  ns:price  50 } }
 
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore2> { <http://example/book2>  ns:price  80 } }
+
+SELECT * 
+FROM NAMED <http://example/bookStore>
+FROM NAMED <http://example/bookStore2>
+WHERE {GRAPH ?g {?s ?p ?o}}
+
 # The ADD operation is a shortcut for inserting all data from an input graph into a destination graph. 
 # Data from the input graph is not affected, and initial data from the destination graph, if any, is kept intact.
+# However, duplicates are not inserted. Run the ADD below twice to verify.
 ADD <http://example/bookStore> TO <http://example/bookStore2>
 
 SELECT * 
-FROM <http://example/bookStore2>
-WHERE {?s ?p ?o}
-
+FROM NAMED <http://example/bookStore>
+FROM NAMED <http://example/bookStore2>
+WHERE {GRAPH ?g {?s ?p ?o}}
