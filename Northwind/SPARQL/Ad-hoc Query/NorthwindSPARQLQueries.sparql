@@ -121,6 +121,8 @@ WHERE
 
 
 # Query: Customers who placed at least one order
+# As an exercise, try and add the “ContactName” and “Address” columns missing in the SPARQL query. 
+# Refer to its SQL counterpart query for more info.  
 SELECT DISTINCT 
   ?customer
   ?companyName
@@ -592,6 +594,8 @@ WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belo
 
 
 # Query: Contact details of suppliers, customers and employees for Xmas cards
+# As an exercise, try and add the “type” column missing in the SPARQL query. 
+# Refer to its SQL counterpart query for more info. 
 SELECT
   ?contactName ?address ?city ?postalCode ?country
 WHERE {
