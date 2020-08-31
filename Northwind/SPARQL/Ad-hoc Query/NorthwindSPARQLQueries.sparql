@@ -88,6 +88,7 @@ WHERE {
        :city ?city ;
        :phone ?phone .
   FILTER (REGEX(?companyName, "Rest" , "i" )) # Case Insensitive
+  # FILTER CONTAINS (LCASE(?companyName), "rest") # Alternatively, you can use the string function CONTAINS.
 }
 
 
