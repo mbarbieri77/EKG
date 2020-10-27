@@ -101,9 +101,10 @@ FROM NAMED <http://example/bookStore10>
 FROM NAMED <http://example/bookStore20>
 FROM NAMED <http://example/bookStore30>
 WHERE { GRAPH ?g {?s ?p ?o}} 
+ORDER BY ?g ?o
 
-
-# Default graph with mergeo of graphs referenced in FROM 
+# Default graph as merge of graphs referenced in FROM 
+# Doesn't include the named graph
 SELECT *
 FROM <http://example/bookStore10> 
 FROM <http://example/bookStore20>
@@ -112,11 +113,65 @@ WHERE {?s ?p ?o}
 
 
 # IRI and Graph pairs of graphs referenced in FROM NAMED
+# Only includes the named graphs
 SELECT *
 FROM <http://example/bookStore10> 
 FROM <http://example/bookStore20>
 FROM NAMED <http://example/bookStore30>
 WHERE { GRAPH ?g {?s ?p ?o}} 
+
+
+# Join across Graphs
+# Only returns the triples that match the patterns in both graphs
+SELECT *
+WHERE {
+  GRAPH <http://example/bookStore10> {?s ?p ?o}
+  GRAPH <http://example/bookStore20> {?s ?p ?o}
+  # GRAPH <http://example/bookStore30> {?s ?p ?o}
+}
+
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore30> { <http://example/book1>  ns:price  10 } }
+
+
+# Returns the triple that matches the patterns of all 3 graphs.
+SELECT *
+WHERE {
+  GRAPH <http://example/bookStore10> {?s ?p ?o}
+  GRAPH <http://example/bookStore20> {?s ?p ?o}
+  GRAPH <http://example/bookStore30> {?s ?p ?o}
+}
+
+
+PREFIX ns: <http://example.org/ns#>
+INSERT DATA
+{ GRAPH <http://example/bookStore30> { <http://example/book1>  ns:price  20 } }
+
+
+# Union 1 and 2 and join on 3.
+    SELECT DISTINCT *
+    FROM <http://example/bookStore10> 
+    FROM <http://example/bookStore20>
+    FROM NAMED <http://example/bookStore30>
+    WHERE {
+      {?s ?p ?o} 
+      {GRAPH ?g {?s ?p ?o}} 
+    }
+    ORDER BY ?g ?o
+
+
+# DOESN'T WORK!!!!
+SELECT DISTINCT *
+FROM NAMED <http://example/bookStore10>
+FROM NAMED <http://example/bookStore20>
+WHERE {
+    GRAPH ?g {
+        {?s ?p ?o.} union {?s ?p ?o .}
+    }
+    GRAPH <http://example/bookStore30> {?s ?p ?o .} 
+}
+ORDER BY ?o
 
 
 # Counting triples in each graph
