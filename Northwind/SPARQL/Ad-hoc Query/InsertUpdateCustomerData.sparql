@@ -34,7 +34,7 @@ INSERT DATA {
   rdfs:label "customer-AAAAA" ;
   :customerID "AAAAA" ;
   :companyName "Northwind" ;
-  :contactName "John Lenon" ;
+  :contactName "John Lennon" ;
   :contactTitle "CTO" ;
   :address "Abbey Road" ;
   :city "London" .
