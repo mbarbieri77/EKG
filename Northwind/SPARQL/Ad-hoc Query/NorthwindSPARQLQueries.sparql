@@ -683,8 +683,8 @@ INSERT DATA {
   :customer-AAAAA a :customer ;
   rdfs:label "customer-AAAAA" ;
   :customerID "AAAAA" ;
-  :companyName "agnos" ;
-  :contactName "Jacobus Geluk" ;
+  :companyName "Northwind" ;
+  :contactName "John Lennon" ;
   :contactTitle "CTO" ;
   :address "Abbey Road" ;
   :city "London" .

@@ -582,7 +582,7 @@ FROM
 -- Query: Insert a new customer
 INSERT Customer ([CustomerID],[CompanyName],[ContactName],[ContactTitle],[Address],[City]) 
 --,[Region],[PostalCode],[Country],[Phone],[Fax]) 
-VALUES('AAAAA', 'Northwind', 'John Lenon', 'EKG Engineer', 'Abbey Road', 'London')
+VALUES('AAAAA', 'Northwind', 'John Lennon', 'EKG Engineer', 'Abbey Road', 'London')
 
 -- Checking if new customer has been added successfully
 SELECT * FROM Customer WHERE CustomerID = 'AAAAA' -- note on the sample database: ideally, CustomerID should be an integer incremental value.
