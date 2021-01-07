@@ -3,6 +3,7 @@
 # Northwind SPARQL Queries
 
 
+
 # Basic select with specified columns
 
 
@@ -19,6 +20,7 @@ WHERE {
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName .      
 }
+
 
 
 # Filtering data
@@ -56,6 +58,7 @@ WHERE {
 }
 
 
+
 # Testing for existence of query patterns
 
 
@@ -65,6 +68,7 @@ ASK {
   ?emp a :employee ;
          :country "UK" .
 }
+
 
 
 
@@ -90,6 +94,7 @@ WHERE {
   FILTER (REGEX(?companyName, "Rest" , "i" )) # Case Insensitive
   # FILTER CONTAINS (LCASE(?companyName), "rest") # Alternatively, you can use the string function CONTAINS.
 }
+
 
 
 # Joins
@@ -143,7 +148,6 @@ WHERE {
 ORDER BY
   ?customer
 
-
 # Query: Customers who never placed an order
 SELECT DISTINCT 
   ?customer
@@ -166,6 +170,7 @@ WHERE {
 }
 ORDER BY
   ?customer
+
 
 
 # Using comparison and logical operators
@@ -194,6 +199,7 @@ WHERE {
 }
 
 
+
 # Filtering on ranges
 
 
@@ -216,6 +222,7 @@ WHERE {
 }
 
 
+
 # Filtering on list of values
 
 
@@ -231,6 +238,7 @@ WHERE {
 }
 
 
+
 # Working with Nulls
 
 
@@ -244,6 +252,7 @@ WHERE {
        :companyName ?companyName ;
        :fax ?fax . 
 }
+
 
 
 # Query: Select all suppliers
@@ -288,6 +297,7 @@ SELECT
  }
 
 
+
 # Sorting data
 
 
@@ -309,6 +319,7 @@ ORDER BY
   DESC(?unitPrice)
 
 
+
 # Eliminating duplicates
 
 
@@ -320,6 +331,7 @@ WHERE{
        :country ?country .
 }
 ORDER BY ?country # Default sorting
+
 
 
 # Column alias and string concatenation
@@ -341,6 +353,7 @@ SELECT
        CONCAT("INT-", ?country), ?region)) AS ?code)
  }
  ORDER BY ?lastName
+
 
 
 # Limiting results
@@ -372,6 +385,7 @@ ORDER BY
 LIMIT 5
 
 
+
 # Pagination
 
 
@@ -401,6 +415,7 @@ OFFSET 5
 LIMIT 5
 
 
+
 # Counting
 
 
@@ -409,6 +424,7 @@ SELECT (COUNT(1) AS ?supplierCount)
 WHERE{
   ?s a :supplier .
 }
+
 
 
 # Distinct counting
@@ -420,6 +436,7 @@ WHERE{
   ?s a :supplier ;
        :country ?country .
 }
+
 
 
 # Grouping and aggregating data
@@ -499,6 +516,7 @@ GROUP BY
 ORDER BY
   DESC(?productCount)
 LIMIT 5
+
 
 
 
@@ -591,6 +609,7 @@ SELECT (COUNT (1) AS ?Count)
 WHERE {:product-2 ^:hasProduct/:belongsToOrder/:hasCustomer/^(^:hasProduct/:belongsToOrder/:hasCustomer) :product-61}
 
 
+
 # Combining multiple result sets using union
 
 
@@ -629,6 +648,7 @@ WHERE {
     BIND (CONCAT (?firstName, " ", ?lastName) AS ?contactName)
   }
 }
+
 
 
 # Subqueries
@@ -675,6 +695,7 @@ SELECT
 }
 
 
+
 # Inserting and updating data
 
 
@@ -698,7 +719,7 @@ DESCRIBE :customer-AAAAA
 # In SQL you can just update multiple colums of a record in a single update statement. 
 # However, in SPARQL, we will need to acomplish this in two steps.
 
-# Step 1: Insert new triple for for the properties not included in Query 23
+# Step 1: Insert new triple for for the properties not included the previous query
 INSERT DATA {
   :customer-AAAAA a :customer ;
   :country "UK" ;
