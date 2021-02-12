@@ -18,7 +18,9 @@
 # Property Path - need to find more useful use cases in Northwind
 # OWL Ontoloty - add a couple of simple properties, e.g. inverse property and inference.
 # Add edge between :product and :customer to answer who bought which products whithout the need to traverse the whole path in the RDF schema. 
-# Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
+# Can it be done with ontology? try RDFS? Insert tripes returned by the query above?
+# https://www.w3.org/TR/sparql11-query/#neg-notexists-minus
+# https://github.com/w3c/sparql-12/issues/100
 
 # Complete the series with examples from the following sources:
 # https://www.stardog.com/tutorials/getting-started-1/

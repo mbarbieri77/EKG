@@ -1,6 +1,6 @@
 
 
--- Not Supported in SPARQL 1.1
+-- SQL features not Supported in SPARQL 1.1
 
 
 -- Query: Select the 3 most recent orders from each customer.
@@ -153,7 +153,7 @@ WHERE
 -- Query: Apply a 10% discount on the top 3 most expensive product in each product category.
 -- This time using a temp table to save the list of products affected.
 -- This is a simple example, but a temp table could be used to store a dataset that goes under 
--- many calculations before being commited to the actual table on the database.
+-- many calculations before being committed to the actual table on the database.
 SELECT 
     ptt.ProductID,
     ptt.UnitPrice

@@ -8,15 +8,13 @@
 # Window Functions: compute aggregated values such as moving averages, cumulative aggregates,
 #   running totals, or a top N numbering and ranking per group results.
 # Recursion
-# Error handling
-# Save intermidiate results - equivalent of temp tables in SQL
-# Multi statements - one single database object to perform multiple tasks
-# Transactions - wrap multiple SPARQL statements in a single transaction
+# Save intermidiate results equivalent to temp tables in SQL
+# One single database object to perform multiple sparql statements in a single transaction
+# Error handling in SPARQL
 
 
 # Correlated subqueries are not supported in SPARQL, and therefore, the following 
 # query doesn't produce the expected result.
-# https://github.com/w3c/sparql-12/issues/100
 
 # Query: Select the 3 most recent orders from each customer
 SELECT DISTINCT 
@@ -47,8 +45,8 @@ ORDER BY
 
 
 
-# A solution could be to run the following query for each customer in a loop and union the result sets in the end.
-# However, there is no recursion in SPARQL and the only way to solve this is to code it in the application.
+# A solution could be to run the query below for each customer recursively
+# on the client application and union their results.
 SELECT *
 WHERE {
   ?orderDetail :hasProduct ?product ; 
@@ -63,6 +61,6 @@ ORDER BY
 LIMIT 3
 
 
-# ROUND, CEIL and FLOOR
-# Add decimal point to the functions above. 
+# TODO: Add examples for ROUND, CEIL and FLOOR functions.
+
 

@@ -1,21 +1,6 @@
 
 
-# TODO!!!!
-# https://www.w3.org/TR/sparql11-query/#neg-notexists-minus
-
-
-# The FROM and FROM NAMED clauses allow a query to specify an RDF dataset by reference.
-# They indicate that the dataset should include graphs that are obtained from representations 
-# of the resources identified by the given IRIs (i.e. the absolute form of the given IRI references). 
-# The dataset resulting from a number of FROM and FROM NAMED clauses is:
-# - a default graph consisting of the RDF union of the graphs referred to in the FROM clauses, and
-# - a set of (IRI, graph) pairs, one from each FROM NAMED clause.
-
-
-# DEMO
-
-# Better if you run this demo on a existing database so you can compare the graphs added here to the existing ones.
-# Statements to clear the graphs used in the demo are provided in the end of this script.
+# Named Graphs
 
 
 # Populate the Graphs
