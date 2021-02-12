@@ -14,7 +14,7 @@ WHERE {
 SELECT * {?s ?p ?o}
 
 
-# Selecting all properties of a Class, e.g. order
+# Selecting all properties of a class, e.g. order
 SELECT DISTINCT
   ?domain ?prop ?range
 WHERE {
@@ -24,6 +24,23 @@ WHERE {
         ?object a ?oClass .
     }
     BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
+    && ?domain = :order
+    )
+}
+
+
+# Constructing a graph with the properties of a class, e.g. order
+CONSTRUCT {
+  ?domain ?prop ?range
+}
+WHERE {
+    ?subject ?prop ?object .
+    ?subject a ?domain .
+    optional {
+        ?object a ?oClass .
+    }
+    BIND(IF(bound(?oClass), ?oClass, datatype(?object)) as ?range)
     FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
     && ?domain = :order
     )
@@ -50,9 +67,6 @@ ORDER BY DESC(?classCount)
 
 
 # Constructing a graph
-# The result of this query can be used to visualize the graph schema. 
-# In Stardog Studio, clik on "Visual", select "No Group" in nodes section and at the bottom of 
-# the screen, choose IRI from the caption drop down.
 CONSTRUCT {
     ?domain ?prop ?range
 }
@@ -68,7 +82,6 @@ WHERE {
 
 
 # Returning all the outgoing edges of the node (execute one statement at a time)
-# In case you are using Stardog Studio, click on "Visual" to visualize the graph schema. 
 DESCRIBE :orderDetail-10248-72
 DESCRIBE :order-10248
 DESCRIBE :product-1
