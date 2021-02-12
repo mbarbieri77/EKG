@@ -21,12 +21,9 @@
 # Can it be done with ontology? try RDFS? Insert tripes returned by the query above? 
 
 # Complete the series with examples from the following sources:
-# https://www.w3.org/TR/sparql11-query/#WritingSimpleQueries
-# https://www.w3.org/TR/sparql11-query/#OptionalMatching
 # https://www.stardog.com/tutorials/getting-started-1/
 # https://www.stardog.com/tutorials/similarity-search/
 # https://www.stardog.com/tutorials/sparql/
-# https://www.w3.org/TR/2013/REC-sparql11-query-20130321/#idp899488
 # SQL INTERSECT and EXCEPT
 # PIVOT and UNPIVOT (N/A, as it may be useful only in tabular data)
 

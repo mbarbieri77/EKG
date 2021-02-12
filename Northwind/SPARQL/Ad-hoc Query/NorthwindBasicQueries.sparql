@@ -1,6 +1,6 @@
 
 
-# Northwind Basic Queries
+# Northwind Basic Sparql Queries
 
 
 # Selecting all triples
@@ -11,80 +11,75 @@ WHERE {
 ORDER BY ?subject
 
 
-# Simplifying the query by using *, short variables names and omit the period and WHERE clause
+# The query above can be simplified by using * to return all variables,
+# short variables names, omit the period and the WHERE clause.
+# The compact version will look like the following.
 SELECT * {?s ?p ?o} ORDER BY ?s
+
+
+# Filtering on a predicate
 SELECT * {?s :hasProduct ?o} ORDER BY ?s
 
 
 # Prefix and namespace
 # The next three queries return the same results
 
-
 # Selecting product details using URI in the triple pattern
-SELECT ?p ?o 
-WHERE { 
+SELECT ?p ?o
+WHERE {
   <http://www.mysparql.com/resource/northwind/product-2> ?p ?o .
 }
 
 
 # Selecting product details using a Prefix
 PREFIX :<http://www.mysparql.com/resource/northwind/>
-SELECT ?p ?o 
-WHERE { 
+SELECT ?p ?o
+WHERE {
   :product-2 ?p ?o .
-} 
+}
 
 
 # Selecting product details using a database namespace
-# An empty prefix has been added for the <http://www.mysparql.com/resource/northwind/> IRI in the database namespace list. 
-SELECT ?p ?o 
-WHERE { 
+# An empty prefix must be aded to the database list for this to work.
+# In this case the following IRI was added: <http://www.mysparql.com/resource/northwind/>
+SELECT ?p ?o
+WHERE {
   :product-2 ?p ?o .
-} 
+}
 
 
 # Selecting product names
 SELECT ?s ?productName
-{ 
+{
     ?s a :product .
     ?s   :productName ?productName
 }
 
 
-# Omitting the subject
-SELECT ?s ?productName
-{ 
-	?s a :product ;
-         :productName ?productName .
-}
-
-
-#Selecting product name and ID
-SELECT 
-  ?s 
-  ?ID 
-  ?productName 
+# Note that in the query above the subject is showing twice.
+# The subject can be omitted as per below.
+SELECT
+  ?s
+  ?ID
+  ?productName
 WHERE
-{ 
+{
   ?s a :product ;
        :productName ?productName ;
        :productID ?ID .
-} 
+}
 
 
 # Selecting the unit price of a product using filter
-select ?s ?o 
-{ 
+select ?s ?o
+{
 	?s a :product .
     ?s   :unitPrice ?o .
   FILTER (?s=:product-1)
 }
 
 
-# Subqueries
-SELECT ?x ?y WHERE {
+# Values list
+SELECT ?x WHERE {
   VALUES ?x { 1 2 3 4 }
-  {
-    SELECT ?y WHERE { VALUES ?y { 5 6 7 8 }  }
-  } 
 } 

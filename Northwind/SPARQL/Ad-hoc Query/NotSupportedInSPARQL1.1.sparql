@@ -5,10 +5,13 @@
 
 # SPARQL 1.1 doesn't support:
 # Correlated subqueries
-# Window Functions: compute aggregated values such as moving averages, cumulative aggregates, running totals, or a top N numbering and ranking per group results.
-# Recursion operator
+# Window Functions: compute aggregated values such as moving averages, cumulative aggregates,
+#   running totals, or a top N numbering and ranking per group results.
+# Recursion
 # Error handling
-# Transactions?
+# Save intermidiate results - equivalent of temp tables in SQL
+# Multi statements - one single database object to perform multiple tasks
+# Transactions - wrap multiple SPARQL statements in a single transaction
 
 
 # Correlated subqueries are not supported in SPARQL, and therefore, the following 
@@ -45,7 +48,7 @@ ORDER BY
 
 
 # A solution could be to run the following query for each customer in a loop and union the result sets in the end.
-# However, there is no recursion in SPARQL, either. Only way to solve this is to code it in the application.
+# However, there is no recursion in SPARQL and the only way to solve this is to code it in the application.
 SELECT *
 WHERE {
   ?orderDetail :hasProduct ?product ; 
