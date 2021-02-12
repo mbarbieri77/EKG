@@ -22,10 +22,6 @@
 <http://www.mysparql.com/resource/northwind/customer-ALFKI> <http://www.mysparql.com/resource/northwind/contactName> "Maria Anders" .
 # Linking customer to an order 
 <http://www.mysparql.com/resource/northwind/order-10643> <http://www.mysparql.com/resource/northwind/hasCustomer> <http://www.mysparql.com/resource/northwind/customer-ALFKI> .
-# The following will not be covered:
-# order Properties
-# Linking an order to orderDetail
-# orderDetail Properties
 
 
 # Insert a new customer

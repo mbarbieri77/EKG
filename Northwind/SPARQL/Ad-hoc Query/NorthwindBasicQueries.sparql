@@ -21,7 +21,7 @@ SELECT * {?s ?p ?o} ORDER BY ?s
 SELECT * {?s :hasProduct ?o} ORDER BY ?s
 
 
-# Prefix and namespace
+# Prefixes and namespaces
 # The next three queries return the same results
 
 # Selecting product details using URI in the triple pattern
@@ -79,7 +79,7 @@ select ?s ?o
 }
 
 
-# Values list
+# Value lists
 SELECT ?x WHERE {
   VALUES ?x { 1 2 3 4 }
 } 

@@ -10,7 +10,7 @@ WHERE {
 }
 
 
-# Select all triples
+# Selecting all triples
 SELECT * {?s ?p ?o}
 
 
@@ -85,4 +85,17 @@ WHERE {
 DESCRIBE :orderDetail-10248-72
 DESCRIBE :order-10248
 DESCRIBE :product-1
+
+
+# Search everywhere query
+SELECT *
+WHERE {
+        ?s ?p ?o .
+        FILTER (
+            (CONTAINS (STR(?s), "category-3")) ||
+            (CONTAINS (STR(?p), "category-3")) ||
+            (CONTAINS (STR(?o), "category-3"))
+        )
+}
+ORDER BY ASC(?s)
 
