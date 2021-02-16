@@ -4,7 +4,7 @@
 
 
 # Populate the Graphs
-# Note that the some of the books are added to more than one graph.
+# Note that the some of the books are added to more than one graph for demonstration purposes.
 # Execute each of the following statements individually. 
 PREFIX ns: <http://mysparql.ai/ns#>
 INSERT DATA {
@@ -31,7 +31,7 @@ INSERT DATA {
 }
 
 
-# Union all graphs (without graph IRI)
+# Union all graphs in FROM
 # The result set includes duplicates and doesn't show the graph IRI.
 PREFIX ns: <http://mysparql.ai/ns#>
 SELECT *
@@ -41,7 +41,7 @@ FROM ns:graph3
 WHERE {?s ?p ?o}
 
 
-# Union all graphs (with graph IRI)
+# Union all graphs in FROM NAMED
 # The result set includes duplicates and shows the graph IRI. 
 PREFIX ns: <http://mysparql.ai/ns#>
 SELECT *
@@ -63,7 +63,7 @@ WHERE {?s ?p ?o}
 
 
 # This query returns the IRI and Graph pairs of graphs referenced in FROM NAMED clause.
-# It ignores the default graph!!!
+# It ignores the default graph!
 PREFIX ns: <http://mysparql.ai/ns#>
 SELECT *
 FROM ns:graph1 

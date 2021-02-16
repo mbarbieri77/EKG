@@ -4,7 +4,8 @@
 
 
 # Total triple count
-SELECT (COUNT(?s) as ?numTriples)
+SELECT
+    (COUNT(?s) as ?numTriples)
 WHERE {
     ?s ?p ?o .
 }
@@ -20,10 +21,10 @@ SELECT DISTINCT
 WHERE {
     ?subject ?prop ?object .
     ?subject a ?domain .
-    optional {
+    OPTIONAL {
         ?object a ?oClass .
     }
-    BIND(IF(bound(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
+    BIND(IF(BOUND(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
     FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
     && ?domain = :order
     )
@@ -32,15 +33,15 @@ WHERE {
 
 # Constructing a graph with the properties of a class, e.g. order
 CONSTRUCT {
-  ?domain ?prop ?range
+    ?domain ?prop ?range
 }
 WHERE {
     ?subject ?prop ?object .
     ?subject a ?domain .
-    optional {
+    OPTIONAL {
         ?object a ?oClass .
     }
-    BIND(IF(bound(?oClass), ?oClass, datatype(?object)) as ?range)
+    BIND(IF(BOUND(?oClass), ?oClass, DATATYPE(?object)) as ?range)
     FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
     && ?domain = :order
     )
@@ -48,22 +49,28 @@ WHERE {
 
 
 # Counting predicates (relationships)
-SELECT ?predicate (COUNT(?predicate) as ?predicateCount)
+SELECT
+    ?predicate (COUNT(?predicate) as ?predicateCount)
 WHERE {
     ?subject ?predicate ?object .
 }
-GROUP BY ?predicate
-ORDER BY DESC(?predicateCount)
+GROUP BY
+    ?predicate
+ORDER BY
+    DESC(?predicateCount)
 
 
 # Counting class instances
-SELECT ?class (COUNT(?subject) as ?classCount)
+SELECT
+    ?class (COUNT(?subject) as ?classCount)
 WHERE {
-  ?subject rdf:type ?class .
-  FILTER (?class != rdfs:Class && ?class != rdf:Property)
+    ?subject rdf:type ?class .
+    FILTER (?class != rdfs:Class && ?class != rdf:Property)
 }
-GROUP BY ?class
-ORDER BY DESC(?classCount)
+GROUP BY
+    ?class
+ORDER BY
+    DESC(?classCount)
 
 
 # Constructing a graph
@@ -73,11 +80,11 @@ CONSTRUCT {
 WHERE {
     ?subject ?prop ?object .
     ?subject a ?domain .
-    optional {
+    OPTIONAL {
         ?object a ?oClass .
     }
-    bind(if(bound(?oClass), ?oClass, datatype(?object)) as ?range)
-    filter (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range)
+    bind(if(BOUND(?oClass), ?oClass, DATATYPE(?object)) as ?range)
+    FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range)
 }
 
 
@@ -88,14 +95,22 @@ DESCRIBE :product-1
 
 
 # Search everywhere query
-SELECT *
+SELECT
+     ?g ?s ?p ?o
 WHERE {
-        ?s ?p ?o .
-        FILTER (
-            (CONTAINS (STR(?s), "category-3")) ||
-            (CONTAINS (STR(?p), "category-3")) ||
-            (CONTAINS (STR(?o), "category-3"))
-        )
+{
+     GRAPH ?g {?s ?p ?o}
+     } UNION {
+     ?s ?p ?o
+     BIND("default" AS ?g)
 }
-ORDER BY ASC(?s)
+FILTER (
+     (CONTAINS (STR(?s), ?searchString)) ||
+     (CONTAINS (STR(?p), ?searchString)) ||
+     (CONTAINS (STR(?o), ?searchString))
+)
+BIND("category-3" AS ?searchString)
+}
+ORDER BY
+     ?g ?s
 
