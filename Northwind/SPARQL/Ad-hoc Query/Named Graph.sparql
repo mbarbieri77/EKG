@@ -92,6 +92,59 @@ WHERE {
   GRAPH ns:graph3 {?s ?p ?o}
 }
 
+# Restricting by Graph IRI
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT *
+WHERE {
+     GRAPH ns:graph2 {?s ?p ?o}
+     GRAPH ns:graph3 {?s ?p ?o}
+}
+
+
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT *
+WHERE {
+     GRAPH ns:graph1 {?s ?p ?o}
+     GRAPH ns:graph2 {?s ?p ?o}
+     GRAPH ns:graph3 {?s ?p ?o}
+}
+
+
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+WHERE {
+{
+     GRAPH ?g {?s ?p ?o}
+}
+}
+ORDER BY ?g ?s
+
+
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+WHERE {
+{
+     GRAPH ?g {?s ?p ?o}
+}
+FILTER (?g IN (ns:graph2 , ns:graph3))
+}
+ORDER BY ?g ?s
+
+
+# produces the same result as the query above
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+FROM NAMED ns:graph2
+FROM NAMED ns:graph3
+WHERE {
+     GRAPH ?g {?s ?p ?o}
+}
+ORDER BY ?g ?s
+
+
 
 # Union triples from all graphs referenced in the query
 # The result set includes duplicates, use DISTINCT to remove them.
@@ -216,3 +269,85 @@ CLEAR GRAPH ns:graph2
 
 PREFIX ns: <http://mysparql.ai/ns#>
 CLEAR GRAPH ns:graph3
+
+
+
+
+PREFIX : <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+WHERE {
+{
+     GRAPH ?g {?s ?p ?o}
+}
+FILTER (
+     (
+        (CONTAINS (STR(?s), ?searchString)) ||
+        (CONTAINS (STR(?p), ?searchString)) ||
+        (CONTAINS (STR(?o), ?searchString))
+     )
+     && (
+         ?g IN (:graph1 , :graph2)
+     )
+)
+BIND("book1" AS ?searchString)
+}
+ORDER BY ?g ?s
+
+
+
+PREFIX : <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+FROM NAMED :graph1
+FROM NAMED :graph2
+WHERE {
+{
+     GRAPH ?g {?s ?p ?o}
+}
+FILTER (
+     (
+        (CONTAINS (STR(?s), ?searchString)) ||
+        (CONTAINS (STR(?p), ?searchString)) ||
+        (CONTAINS (STR(?o), ?searchString))
+     )
+)
+BIND("book1" AS ?searchString)
+}
+ORDER BY ?g ?s
+
+
+
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+WHERE {
+{
+     GRAPH ?g {?s ?p ?o}
+}
+}
+ORDER BY ?g ?s
+
+
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+WHERE {
+{
+     GRAPH ?g {?s ?p ?o}
+}
+FILTER (?g IN (ns:graph2 , ns:graph3))
+}
+ORDER BY ?g ?s
+
+
+
+PREFIX ns: <http://mysparql.ai/ns#>
+SELECT
+     ?g ?s ?p ?o
+FROM NAMED ns:graph2
+FROM NAMED ns:graph3
+WHERE {
+     GRAPH ?g {?s ?p ?o}
+}
+ORDER BY ?g ?s
