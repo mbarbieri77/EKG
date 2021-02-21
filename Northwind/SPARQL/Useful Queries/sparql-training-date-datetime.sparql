@@ -1,0 +1,45 @@
+
+
+INSERT DATA
+ {
+    GRAPH kgGRAPH:test {
+    kgiri:John kgiri:hASDOB "20201010" .
+    }
+}
+
+SELECT *
+WHERE {
+    GRAPH kgGRAPH:test{
+        ?s ?p ?o
+        BIND(xsd:date(?o) AS ?date2)
+        BIND(xsd:dateTime(?o) AS ?dateTime2)
+    }
+}
+   
+SELECT * WHERE {
+    BIND ("2020-10-10T13:31:59.000-08:00"^^xsd:dateTime AS ?t1)
+    BIND ("2020-10-10"^^xsd:date AS ?d1)
+    BIND (xsd:date(?t1) AS ?d2)
+    BIND (xsd:dateTime(?d1) AS ?t2)
+    BIND ( datatype (?d1) AS ?d1Type)
+    BIND ( datatype (?d2) AS ?d2Type)
+    BIND ( datatype (?t1) AS ?t1Type)
+    BIND ( datatype (?t2) AS ?t2Type)
+  }
+
+SELECT * WHERE {
+BIND(now() AS ?aDateTime)
+BIND(hours(?aDateTime) AS ?h)
+BIND(minutes(?aDateTime) AS ?m)
+BIND(seconds(?aDateTime) AS ?s)
+BIND(<http://www.w3.org/2003/11/swrlb#time>(?h, ?m, ?s) AS ?aTime)
+}
+
+
+SELECT * {
+    BIND("2020-10-10"^^xsd:date AS ?today)
+    BIND("2020-10-09"^^xsd:date < ?today AS ?dateComparsion)
+    BIND("2020-10-10T10:10:10"^^xsd:dateTime AS ?todayTime)
+    BIND("2020-10-10T10:10:09"^^xsd:dateTime < ?todayTime AS ?timeComparsion)
+}
+
