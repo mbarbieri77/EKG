@@ -51,7 +51,7 @@ WHERE {
 # Selecting product names
 SELECT ?s ?productName
 {
-    ?s a :product .
+    ?s a :Product .
     ?s   :productName ?productName
 }
 
@@ -64,7 +64,7 @@ SELECT
   ?productName
 WHERE
 {
-  ?s a :product ;
+  ?s a :Product ;
        :productName ?productName ;
        :productID ?ID .
 }
@@ -73,7 +73,7 @@ WHERE
 # Selecting the unit price of a product using filter
 select ?s ?o
 {
-	?s a :product .
+	?s a :Product .
     ?s   :unitPrice ?o .
   FILTER (?s=:product-1)
 }

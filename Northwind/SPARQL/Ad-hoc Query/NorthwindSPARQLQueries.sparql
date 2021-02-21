@@ -14,7 +14,7 @@ SELECT
   ?firstName
   ?title
 WHERE {
-  ?emp a :employee ;
+  ?emp a :Employee ;
          rdfs:label ?label ;
          foaf:title ?title ;
          foaf:lastName ?lastName ;
@@ -33,7 +33,7 @@ SELECT
   ?firstName
   ?title
 WHERE {
-  ?emp a :employee ;
+  ?emp a :Employee ;
          rdfs:label ?label ;
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
@@ -49,7 +49,7 @@ SELECT
   ?firstName
   ?title
 WHERE {
-  ?emp a :employee ;
+  ?emp a :Employee ;
          rdfs:label ?label ;
          foaf:lastName ?lastName ;
          foaf:firstName ?firstName ;
@@ -65,7 +65,7 @@ WHERE {
 # Returns a boolean indicating whether a query pattern matches or not.
 # Query: Do I have any employees in the UK?
 ASK {
-  ?emp a :employee ;
+  ?emp a :Employee ;
          :country "UK" .
 }
 
@@ -84,7 +84,7 @@ SELECT
   ?city 
   ?phone 
 WHERE {
-  ?s a :customer ;
+  ?s a :Customer ;
        rdfs:label ?companyLabel ;
        :companyName ?companyName ;
        :contactName ?contactName ;
@@ -111,16 +111,16 @@ SELECT
   ?contactName
 WHERE
 { 
-  ?product a  :product ;
+  ?product a  :Product ;
               :productID ?productID ;
               :productName ?productName ;
               :unitsInStock ?unitsInStock ;
               :unitPrice ?unitPrice ;
               :hasCategory ?category ;
               :hasSupplier ?supplier .
-  ?category a :category ;
+  ?category a :Category ;
               :name ?categoryName .
-  ?supplier a :supplier ;
+  ?supplier a :Supplier ;
               :contactName ?contactName ;
               :country "USA" .
 } 
@@ -136,8 +136,8 @@ SELECT DISTINCT
   ?city
   ?country 
 WHERE {
-  ?order    a :order .
-  ?customer a :customer .
+  ?order    a :Order .
+  ?customer a :Customer .
   ?order      :hasCustomer ?customer .
   ?customer   :customerID ?customerID ;
               :companyName ?companyName ;
@@ -156,14 +156,14 @@ SELECT DISTINCT
   ?city
   ?country
 WHERE {
-  ?customer a :customer .
+  ?customer a :Customer .
   ?customer   :customerID ?customerID ;
               :companyName ?companyName ;
               :city ?city ;
               :country ?country .
   OPTIONAL {?customer :postalCode ?postalCode} . # Some regions don't use PostalCode.
   OPTIONAL {
-    ?order a  :order .
+    ?order a  :Order .
     ?customer ^:hasCustomer ?order # left join - for customers with no orders, ?order variable will be empty.
   } 
   FILTER (!BOUND(?order)) # Checks if variable is not bound to a value. 
@@ -186,7 +186,7 @@ SELECT
   ?region 
   ?country 
 WHERE {
-  ?s a :product ;
+  ?s a :Product ;
        :productName ?productName ;
        :productID ?productID ;
        :hasSupplier ?supplier ; # Joining on supplier
@@ -210,12 +210,12 @@ SELECT
   ?companyName
   ?unitPrice
 WHERE {
-  ?s a :product ;
+  ?s a :Product ;
        :productID ?productID ;
        :productName ?productName ;
        :hasSupplier ?supplier ; 
        :unitPrice ?unitPrice .
-  ?supplier a :supplier ;
+  ?supplier a :Supplier ;
        :companyName ?companyName ;
        :supplierID ?supplierID .
   FILTER (?unitPrice >= 18 && ?unitPrice <= 20) 
@@ -231,7 +231,7 @@ SELECT
   ?companyName
   ?country
 WHERE {
-  ?s a :supplier ;
+  ?s a :Supplier ;
        :companyName ?companyName ;
        :country ?country .
   FILTER (UCASE(?country) = "JAPAN" || ?country = "Italy") # case sensitive
@@ -248,7 +248,7 @@ SELECT
   ?companyName
   ?fax
 WHERE {
-  ?s a :supplier ;
+  ?s a :Supplier ;
        :companyName ?companyName ;
        :fax ?fax . 
 }
@@ -260,7 +260,7 @@ SELECT
   ?companyName
   ?fax
 WHERE {
-  ?s a :supplier ;
+  ?s a :Supplier ;
        :companyName ?companyName ;
        OPTIONAL {?s :fax ?fax} . 
 }
@@ -271,7 +271,7 @@ SELECT
   ?companyName
   ?fax
 WHERE {
-  ?s a :supplier ;
+  ?s a :Supplier ;
        :companyName ?companyName ;
        OPTIONAL {?s :fax ?fax} . 
   FILTER (!BOUND(?fax))
@@ -283,13 +283,13 @@ SELECT
   ?companyName
   ?fax
  WHERE {
-    ?s a :supplier ;
+    ?s a :Supplier ;
          :companyName ?companyName .
     FILTER NOT EXISTS {
       SELECT
         ?companyName
       WHERE {
-        ?s a :supplier ;
+        ?s a :Supplier ;
             :companyName ?companyName ;
             :fax ?fax . 
         }
@@ -307,7 +307,7 @@ SELECT
   ?categoryName
   ?unitPrice
 WHERE {
-  ?s a :product ;
+  ?s a :Product ;
        :productID ?productID ;
        :productName ?productName ;
        :unitPrice ?unitPrice ;
@@ -327,7 +327,7 @@ ORDER BY
 # Note that there are more than one supplier per country and DISTINCT has been used to eliminate the duplicates.
 SELECT DISTINCT ?country
 WHERE{
-  ?s a :supplier ;
+  ?s a :Supplier ;
        :country ?country .
 }
 ORDER BY ?country # Default sorting
@@ -342,7 +342,7 @@ SELECT
   (CONCAT (?firstName, " ", ?lastName) AS ?fullName)
   ?code
  WHERE {
-   ?s a :employee ;
+   ?s a :Employee ;
         foaf:firstName ?firstName ;
         foaf:lastName ?lastName ;
         rdfs:label ?employeeLabel ; 
@@ -368,9 +368,9 @@ SELECT
     ?quantity
     ?unitsInStock
 WHERE {
-  ?orderDetail  a :orderDetail .
-  ?order        a :order .
-  ?product      a :product .
+  ?orderDetail  a :OrderDetail .
+  ?order        a :Order .
+  ?product      a :Product .
   ?orderDetail    :quantity         ?quantity ;
                   :belongsToOrder   ?order ;
                   :hasProduct       ?product .
@@ -397,9 +397,9 @@ SELECT
     ?quantity
     ?unitsInStock
 WHERE {
-  ?orderDetail  a :orderDetail .
-  ?order        a :order .
-  ?product      a :product .
+  ?orderDetail  a :OrderDetail .
+  ?order        a :Order .
+  ?product      a :Product .
   ?orderDetail    :quantity         ?quantity ;
                   :belongsToOrder   ?order ;
                   :hasProduct       ?product .
@@ -422,7 +422,7 @@ LIMIT 5
 # Query: Number of supplier
 SELECT (COUNT(1) AS ?supplierCount)
 WHERE{
-  ?s a :supplier .
+  ?s a :Supplier .
 }
 
 
@@ -433,7 +433,7 @@ WHERE{
 # Query: Number of countries I buy from.
 SELECT (COUNT(DISTINCT ?country) AS ?countryCount)
 WHERE{
-  ?s a :supplier ;
+  ?s a :Supplier ;
        :country ?country .
 }
 
@@ -447,7 +447,7 @@ SELECT
   ?productID
   (SUM(?quantity) AS ?totalQtySold)  
 WHERE {
-  ?order a :orderDetail ;
+  ?order a :OrderDetail ;
            :quantity ?quantity ;
            :hasProduct ?product .
   ?product :productID ?productID .
@@ -462,10 +462,10 @@ SELECT
   ?orderID
   (ROUND(SUM(?unitPrice * ?quantity * (1 - ?discount))) AS ?total) 
 WHERE {
-  ?order        a :order ;
+  ?order        a :Order ;
                   :orderID ?orderID ;
                   :shipCountry "USA" .
-  ?orderDetail  a :orderDetail ;
+  ?orderDetail  a :OrderDetail ;
                   :belongsToOrder ?order ;
                   :unitPrice ?unitPrice ;
                   :quantity ?quantity ;
@@ -483,10 +483,10 @@ SELECT
   ?orderID
   (ROUND(SUM(?unitPrice * ?quantity * (1 - ?discount))) AS ?total)
 WHERE {
-  ?order        a :order ;
+  ?order        a :Order ;
                   :orderID ?orderID ;
                   :shipCountry "USA" .
-  ?orderDetail  a :orderDetail ;
+  ?orderDetail  a :OrderDetail ;
                   :belongsToOrder ?order ;
                   :unitPrice ?unitPrice ;
                   :quantity ?quantity ;
@@ -506,9 +506,9 @@ SELECT
   (COUNT(?product) as ?productCount)
 WHERE
 { 
-  ?product a  :product ;
+  ?product a  :Product ;
               :hasSupplier ?supplier .
-  ?supplier a :supplier ;
+  ?supplier a :Supplier ;
               :contactName ?supplierContactName .
 } 
 GROUP BY 
@@ -620,7 +620,7 @@ SELECT
   ?contactName ?address ?city ?postalCode ?country
 WHERE {
   {
-    ?supplier a :supplier ;
+    ?supplier a :Supplier ;
       :contactName ?contactName ;
       :address ?address ;
       :city ?city ;
@@ -629,7 +629,7 @@ WHERE {
   }
   UNION
   {
-    ?customer a :customer ;
+    ?customer a :Customer ;
       :contactName ?contactName ;
       :address ?address ;
       :city ?city ;
@@ -638,7 +638,7 @@ WHERE {
   }
    UNION
   {
-    ?employee a :employee ;
+    ?employee a :Employee ;
       foaf:firstName ?firstName ;
       foaf:lastName ?lastName ;
       :address ?address ;
@@ -660,7 +660,7 @@ SELECT
   ?unitPrice
   ?unitsInStock
 WHERE { # outer query
-  ?product a :product ;
+  ?product a :Product ;
              :productName ?productName ;
              :unitPrice ?unitPrice ;
              :unitsInStock ?unitsInStock ;
@@ -669,7 +669,7 @@ WHERE { # outer query
       SELECT 
         ?category
       WHERE {
-        ?category a :category ;
+        ?category a :Category ;
                     :categoryID ?categoryID ;
                     :name "Seafood" .
       }
@@ -681,13 +681,13 @@ WHERE { # outer query
 
 # Query: Calculate the average number of orders processed per year 
 SELECT 
-  (ROUND(AVG(?orderCount)) AS ?avgCount) 
+  (AVG(?orderCount) AS ?avgCount) 
   (MIN(?orderYear) AS ?startYear)
   (MAX(?orderYear) AS ?endYear)
 {
   SELECT ?orderYear (count(?order) AS ?orderCount)
   WHERE {
-    ?order a :order ;
+    ?order a :Order ;
             :orderDate ?orderDate ;
     BIND(year(?orderDate) AS ?orderYear)
   }
@@ -701,7 +701,7 @@ SELECT
 
 # Query: Insert a new customer
 INSERT DATA {
-  :customer-AAAAA a :customer ;
+  :customer-AAAAA a :Customer ;
   rdfs:label "customer-AAAAA" ;
   :customerID "AAAAA" ;
   :companyName "Northwind" ;
