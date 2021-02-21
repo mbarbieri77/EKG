@@ -26,7 +26,7 @@ WHERE {
     }
     BIND(IF(BOUND(?oClass), ?oClass, DATATYPE(?object)) AS ?range)
     FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
-    && ?domain = :order
+    && ?domain = :Order
     )
 }
 
@@ -43,7 +43,7 @@ WHERE {
     }
     BIND(IF(BOUND(?oClass), ?oClass, DATATYPE(?object)) as ?range)
     FILTER (?prop != rdf:type && ?prop != rdfs:domain && ?prop != rdfs:range 
-    && ?domain = :order
+    && ?domain = :Order
     )
 }
 
