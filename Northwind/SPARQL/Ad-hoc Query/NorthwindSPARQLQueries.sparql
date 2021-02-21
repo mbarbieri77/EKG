@@ -721,7 +721,7 @@ DESCRIBE :customer-AAAAA
 
 # Step 1: Insert new triple for for the properties not included the previous query
 INSERT DATA {
-  :customer-AAAAA a :customer ;
+  :customer-AAAAA a :Customer ;
   :country "UK" ;
   :postalCode "SW1A 2AA" . 
 }
@@ -734,7 +734,7 @@ INSERT {
   :customer-AAAAA :address ?newAddress
 }
 WHERE {
-  :customer-AAAAA a :customer ;
+  :customer-AAAAA a :Customer ;
   :address ?oldAddress ;
   BIND("10 Downing Road" AS ?newAddress) .
 }
