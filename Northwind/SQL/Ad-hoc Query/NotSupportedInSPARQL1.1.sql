@@ -1,6 +1,6 @@
 
 
--- SQL features not Supported in SPARQL 1.1
+-- SQL features NOT Supported in SPARQL 1.1
 
 
 -- Query: Select the 3 most recent orders from each customer.
@@ -13,7 +13,7 @@ FROM
     Customer AS cst
 -- For each customer record, go and get the two most recent orders.
 -- An INNER JOIN could've been used, however, CROSS APPLY is more efficient when combined with SELECT TOP.
-CROSS APPLY 
+CROSS APPLY
 (
     SELECT TOP 3 
         ord.OrderID, ord.OrderDate, cst.CustomerID
@@ -196,4 +196,62 @@ ORDER BY
 
 
 DROP TABLE IF EXISTS #ProdDiscount
+
+
+-- AdventureWorks Queries ----------------------------
+
+
+USE AdventureWorks2017;
+SELECT
+    ROW_NUMBER() OVER(ORDER BY SalesYTD DESC) AS Row,
+    FirstName,
+    LastName,
+    ROUND(SalesYTD,2,1) AS "Sales YTD"
+FROM
+    Sales.vSalesPerson
+WHERE
+    TerritoryName IS NOT NULL
+    AND SalesYTD <> 0;
+
+
+USE AdventureWorks2017;
+SELECT i.ProductID, p.Name, i.LocationID, i.Quantity
+    ,RANK() OVER
+    (PARTITION BY i.LocationID ORDER BY i.Quantity DESC) AS Rank
+FROM Production.ProductInventory AS i
+INNER JOIN Production.Product AS p
+    ON i.ProductID = p.ProductID
+WHERE i.LocationID BETWEEN 3 AND 4
+ORDER BY i.LocationID;
+GO
+
+
+USE AdventureWorks2017;
+SELECT i.ProductID, p.Name, i.LocationID, i.Quantity
+    ,DENSE_RANK() OVER
+    (PARTITION BY i.LocationID ORDER BY i.Quantity DESC) AS Rank
+FROM Production.ProductInventory AS i
+INNER JOIN Production.Product AS p
+    ON i.ProductID = p.ProductID
+WHERE i.LocationID BETWEEN 3 AND 4
+ORDER BY i.LocationID;
+GO
+
+
+USE AdventureWorks2017;
+SELECT p.FirstName, p.LastName
+    ,NTILE(4) OVER(ORDER BY SalesYTD DESC) AS Quartile
+    ,CONVERT(NVARCHAR(20),s.SalesYTD,1) AS SalesYTD
+    , a.PostalCode
+FROM Sales.SalesPerson AS s
+INNER JOIN Person.Person AS p
+    ON s.BusinessEntityID = p.BusinessEntityID
+INNER JOIN Person.Address AS a
+    ON a.AddressID = p.BusinessEntityID
+WHERE TerritoryID IS NOT NULL
+    AND SalesYTD <> 0;
+GO
+
+
+
 
