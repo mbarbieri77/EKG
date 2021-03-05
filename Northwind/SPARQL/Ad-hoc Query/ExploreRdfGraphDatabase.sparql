@@ -90,6 +90,21 @@ ORDER BY
     DESC(?classCount)
 
 
+# Counting triples in graphs
+SELECT
+     ?g (COUNT(*) AS ?Count)
+WHERE {
+     {
+          GRAPH ?g {?s ?p ?o}
+     } UNION {
+          ?s ?p ?o
+          BIND("default" AS ?g)
+     }
+}
+GROUP BY ?g
+ORDER BY DESC(?Count)
+
+
 # Constructing a graph
 CONSTRUCT {
     ?domain ?prop ?range
