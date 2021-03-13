@@ -3,7 +3,7 @@
 # Northwind Basic Sparql Queries
 
 
-# Selecting all triples
+# Selecting all triples in the default graph
 SELECT ?subject ?predicate ?object
 WHERE {
   ?subject ?predicate ?object .
@@ -24,7 +24,7 @@ SELECT * {?s :hasProduct ?o} ORDER BY ?s
 # Prefixes and namespaces
 # The next three queries return the same results
 
-# Selecting product details using URI in the triple pattern
+# Selecting product details using IRI in the triple pattern
 SELECT ?p ?o
 WHERE {
   <http://www.mysparql.com/resource/northwind/product-2> ?p ?o .
@@ -40,7 +40,7 @@ WHERE {
 
 
 # Selecting product details using a database namespace
-# An empty prefix must be aded to the database list for this to work.
+# An empty prefix must be added to the database list of namespaces for this to work.
 # In this case the following IRI was added: <http://www.mysparql.com/resource/northwind/>
 SELECT ?p ?o
 WHERE {
@@ -48,20 +48,19 @@ WHERE {
 }
 
 
-# Selecting product names
-SELECT ?s ?productName
+# Selecting product details
+SELECT ?s ?ID ?productName
 {
     ?s a :Product .
-    ?s   :productName ?productName
+    ?s   :productName ?productName .
+    ?s   :productID ?ID .
 }
 
 
-# Note that in the query above the subject is showing twice.
-# The subject can be omitted as per below.
-SELECT
-  ?s
-  ?ID
-  ?productName
+# Note that in the query above, the subject is repeated three times.
+# The subject can be omitted using semicolumns, allowing more
+# predicate-object pairs to be added, as per illustrated below.
+SELECT ?s ?ID ?productName
 WHERE
 {
   ?s a :Product ;
@@ -70,16 +69,10 @@ WHERE
 }
 
 
-# Selecting the unit price of a product using filter
-select ?s ?o
-{
-	?s a :Product .
-    ?s   :unitPrice ?o .
-  FILTER (?s=:product-1)
-}
-
-
 # Value lists
 SELECT ?x WHERE {
   VALUES ?x { 1 2 3 4 }
-} 
+}
+
+
+#...to be continued...
