@@ -2,8 +2,8 @@
 
 -- SQL features NOT Supported in SPARQL 1.1
 
-
--- Query: Select the 3 most recent orders from each customer.
+ 
+--Query: Select the 3 most recent orders from each customer.
 SELECT 
     cst.CustomerID, 
     cst.City,
@@ -16,11 +16,11 @@ FROM
 CROSS APPLY
 (
     SELECT TOP 3 
-        ord.OrderID, ord.OrderDate, cst.CustomerID
+        ord.OrderID, ord.OrderDate, ord.CustomerID
     FROM 
         [Order] AS ord
     WHERE 
-        ord.customerid = cst.customerid -- reference to the outer query (correlated subquery)
+        ord.CustomerID = cst.CustomerID -- reference to the outer query (correlated subquery)
     ORDER BY 
         ord.OrderDate DESC
 ) AS cpp
