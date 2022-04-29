@@ -3,6 +3,12 @@
 # Northwind Basic Sparql Queries
 
 
+# The following prefixes need to be added to the database or 
+# to the beggining of the queries that require them.
+# PREFIX     : <http://www.mysparql.com/resource/northwind/>
+# PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+
+
 # Selecting all triples in the default graph
 SELECT ?subject ?predicate ?object
 WHERE {
