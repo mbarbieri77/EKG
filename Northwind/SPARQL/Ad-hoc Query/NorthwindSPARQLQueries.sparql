@@ -181,6 +181,30 @@ ORDER BY
   ?customer
 
 
+# Query: Customers who never placed an order (using MINUS)
+SELECT 
+  ?customer
+  ?companyName
+  ?postalCode
+  ?city
+  ?country
+WHERE { 
+  {
+    ?customer a :Customer ; # All customers
+    :customerID ?customerID ;
+    :companyName ?companyName ;
+    :city ?city ;
+    :country ?country .
+  }
+    MINUS
+  {
+    ?customer a :Customer . # Customers who placed orders
+    ?order a  :Order .
+    ?order :hasCustomer ?customer .
+  }
+}
+
+
 
 # Using comparison and logical operators
 
