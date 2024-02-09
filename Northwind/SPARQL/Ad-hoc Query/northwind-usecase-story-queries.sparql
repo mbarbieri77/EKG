@@ -76,6 +76,7 @@ WHERE {
 
 # Testing for existence of query patterns
 
+
 # This query returns a boolean indicating whether a query pattern matches or not.
 # Story: As a Human Resources Manager, I want to know if the company has employees in the UK.
 
